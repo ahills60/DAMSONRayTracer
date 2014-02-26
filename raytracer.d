@@ -6,10 +6,19 @@
 
 /* Constants to determine which pixels to process */
 int PIXEL_OFFSET = 0;
-int PIXEL_JUMP = NODE_COUNT;
-int OpenThreads = 0;
-int ThreadSemaphore = 2;
+
 int SpaceCounter = 1;
+
+// For jobs received externally
+int ExternalSemaphore = 1;
+float ExternalCoordinates[MAX_COORDS][3];
+int ExternalCoordinateTimes[MAX_COORDS][3];
+int ExternalSource[MAX_COORDS];
+int noExternalCoordinates = 0;
+
+// Flag for termination.
+int Terminate = 0;
+
 
 void clockinterrupt(int, int, int, int);
 void datainterrupt(int, int, int, int);
@@ -17,44 +26,94 @@ void RayTrace(void);
 
 int main(void)
 {
-    int i;
-    tickrate(1000);
+    int i, h;
+    // tickrate(1000);
     printf("Port number: %d\n", OUTPORT);
+    printf("Initialising external coordinates...\n");
+    for (i = 0; i < MAX_COORDS; i += 1)
+    {
+        ExternalSource[i] = 0;
+        ExternalCoordinateTimes[i][0] = 0;
+        ExternalCoordinateTimes[i][1] = 0;
+        ExternalCoordinateTimes[i][2] = 0;
+    }
+    
+    printf("Spawning processes...\n");
+    for (i = 0; i < MAX_THREADS; i += 1)
+    {
+        h = createthread(RayTrace, STACK_SIZE);
+        
+        if (!h)
+        {
+            // Unable to create thread
+            printf("Unable to create a new thread. Total number of threads: %d.\n", (i + 1));
+            break;
+        }
+    }
     return 1;
 }
 
 void RayTrace(void)
 {
-    // printf("Starting to ray trace...\n");
+    int i, n, SourceNode = 0;
+    float processVector[3];
     
-    wait(&ThreadSemaphore);
-    // printf("Cleaning up...\n");
-    OpenThreads -= 1;
-    signal(&ThreadSemaphore);
-    // printf("Ending...\n");
-}
-
-void clockinterrupt(int source, int port, int data, int time)
-{
-    int h;
-    if (OpenThreads < MAX_THREADS)
+    printf("Ray tracing thread initialised.\n");
+    
+    while (!Terminate)
     {
-        wait(&ThreadSemaphore);
-        // printf("Creating new thread...\n");
-        h = createthread(RayTrace, 500);
-        if (h == 0)
+        // Lock the variables
+        wait(&ExternalSemaphore);
+        // Start to look for outstanding external jobs
+        if (noExternalCoordinates > 0)
         {
-            // Unable to create thread
-            printf("Unable to create new thread\n");
+            // Take a job from the external coordinates
+            printf("Taking a job from external source\n.");
+            
+            for (i = 0; i < MAX_COORDS; i += 1)
+            {
+                // Check to see if the external source variable has been written
+                if (ExternalSource[i] > 0)
+                {
+                    // Process this one
+                    for (n = 0; n < 3; n += 1)
+                    {
+                        processVector[n] = ExternalCoordinates[i][n];
+                        // Now reset the variables
+                        ExternalCoordinates[i][n] = 0.0;
+                        ExternalCoordinateTimes[i][n] = 0;
+                    }
+                    SourceNode = ExternalSource[i];
+                    
+                    // Stop looking for more jobs
+                    break;
+                }
+            }
+        }
+        // Let other threads access the variables
+        signal(&ExternalSemaphore);
+        
+        // Determine whether the job to process is an inside or outside job
+        if (SourceNode)
+        {
+            // Process the external job
+            
         }
         else
         {
-            OpenThreads += 1;
-            // printf("New thread created. Total open: %d\n", OpenThreads);
+            // Process inside job
+            
+            
         }
-        signal(&ThreadSemaphore);
+        
+        
+        // Reset variables
+        SourceNode = 0;
     }
+    printf("Thread has seen terminate flag. Terminating...");
+    // Clean up if necessary
     
+    printf("Thread terminated.");
 }
 
 void datainterrupt(int source, int port, int data, int time)
@@ -63,7 +122,7 @@ void datainterrupt(int source, int port, int data, int time)
 }
 
 #alias raytracernode 1
-    clockinterrupt: 0
+    // clockinterrupt: 0
      // datainterrupt: 2
      PIXEL_OFFSET = 0;
        
