@@ -10,3 +10,7 @@
 #define MAX_THREADS     10
 #define MAX_COORDS      20
 #define STACK_SIZE      500
+
+#define PORT_X          1000
+#define PORT_Y          1001
+#define PORT_Z          1002
