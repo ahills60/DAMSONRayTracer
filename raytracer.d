@@ -20,6 +20,9 @@ int noExternalCoordinates = 0;
 // Flag for termination.
 int Terminate = 0;
 
+// Result storage
+float ResultStore[4][4];
+
 // Prototypes
 void datainterrupt(int, int, int, int);
 void RayTrace(void);
