@@ -16,6 +16,8 @@
 // Define some constants
 #define EPS        6 // 512 // 6 // 31 // Was 0.00001
 
+extern int ResultStore[4][4];
+
 /*
 // UV coordinate structure
 typedef struct UVCoord
@@ -82,9 +84,6 @@ void setUVCoord(UVCoord *a, fixedp u, fixedp v)
 /* Set the coordinates of a vector */
 void setVector(Vector *v, fixedp x, fixedp y, fixedp z, FuncStat *f)
 {
-#ifdef DEBUG
-    (*f).setVector++;
-#endif
     (*v).x = x;
     (*v).y = y;
     (*v).z = z;
@@ -94,9 +93,7 @@ void setVector(Vector *v, fixedp x, fixedp y, fixedp z, FuncStat *f)
 void setMatrix(Matrix *F, fixedp *m, MathStat *ma, FuncStat *f)
 {
     int n, p;
-#ifdef DEBUG
-    (*f).setMatrix++;
-#endif
+    
     for (n = 0; n < 4; n++)
     {
         DEBUG_statPlusInt(ma, 1); // for the loop
@@ -111,139 +108,98 @@ void setMatrix(Matrix *F, fixedp *m, MathStat *ma, FuncStat *f)
 }
 
 /* Convert from degrees to radians */
-float deg2rad(float deg, MathStat *m, FuncStat *f)
+float deg2rad(float deg)
 {
-#ifdef DEBUG
-    (*f).deg2rad++;
-#endif
-    DEBUG_statGroupFlt(m, 0, 0, 1, 1);
     return deg * M_PI / 180.0;
 }
 
 /* Vector multiply */
-Vector vecMult(Vector u, Vector v, MathStat *m, FuncStat *f)
+void vecMult(float u[3], float v[3])
 {
-    Vector w;
-#ifdef DEBUG
-    (*f).vecMult++;
-#endif
-    setVector(&w, fp_mult(u.x, v.x), fp_mult(u.y, v.y), fp_mult(u.z, v.z), f);
-    DEBUG_statMultiplyFlt(m, 3);
-    return w;
+    ResultStore[0][0] = u[0] * v[0];
+    ResultStore[0][1] = u[1] * v[1];
+    ResultStore[0][2] = u[2] * v[2];
 }
 
 /* Dot product of two vectors */
-fixedp dot(Vector u, Vector v, MathStat *m, FuncStat *f)
+float dot(float u[3], float v[3])
 {
-#ifdef DEBUG
-    (*f).dot++;
-#endif
-    DEBUG_statGroupFlt(m, 2, 0, 3, 0);
-    return fp_mult(u.x, v.x) + fp_mult(u.y, v.y) + fp_mult(u.z, v.z);
+    return u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
 }
 
 /* Cross product of two vectors */
-Vector cross(Vector u, Vector v, MathStat *m, FuncStat *f)
+void cross(float u[3], float v[3])
 {
-    Vector w;
-#ifdef DEBUG
-    (*f).cross++;
-#endif
-    setVector(&w, fp_mult(u.y, v.z) - fp_mult(v.y, u.z), fp_mult(u.z, v.x) - fp_mult(v.z, u.x), fp_mult(u.x, v.y) - fp_mult(v.x, u.y), f);
-    DEBUG_statGroupFlt(m, 0, 3, 6, 0);
-    return w;
+    // {ResultStore[0][0], ResultStore[0][1], ResultStore[0][2]}
+    ResultStore[0][0] = u[1] * v[2] - v[1] * u[2];
+    ResultStore[0][1] = u[2] * v[0] - v[2] * u[0];
+    ResultStore[0][2] = u[0] * v[1] - v[0] * u[1];
 }
 
 /* Scalar multiplication with a vector */
-Vector scalarVecMult(fixedp a, Vector u, MathStat *m, FuncStat *f)
+void scalarVecMult(float a, float u[3])
 {
-    Vector w;
-#ifdef DEBUG
-    (*f).scalarVecMult++;
-#endif
-    setVector(&w, fp_mult(a, u.x), fp_mult(a, u.y), fp_mult(a, u.z), f);
-    DEBUG_statMultiplyFlt(m, 3);
-    return w;
+    ResultStore[0][0] = a * u[0];
+    ResultStore[0][1] = a * u[1];
+    ResultStore[0][2] = a * u[2];
 }
 
 /* Scalar division with a vector */
-Vector scalarVecDiv(fixedp a, Vector u, MathStat *m, FuncStat *f)
+void scalarVecDiv(float a, float u[3])
 {
-    Vector w;
-#ifdef DEBUG
-    (*f).scalarVecDiv++;
-#endif
-    setVector(&w, fp_div(u.x, a), fp_div(u.y, a), fp_div(u.z, a), f);
-    DEBUG_statDivideFlt(m, 3);
-    return w;
+    ResultStore[0][0] = u[0] / a;
+    ResultStore[0][1] = u[1] / a;
+    ResultStore[0][2] = u[2] / a;
 }
 
 /* Vector addition */
-Vector vecAdd(Vector u, Vector v, MathStat *m, FuncStat *f)
+void vecAdd(float u[3], float v[3])
 {
-    Vector w;
-#ifdef DEBUG
-    (*f).vecAdd++;
-#endif
-    setVector(&w, u.x + v.x, u.y + v.y, u.z + v.z, f);
-    DEBUG_statPlusFlt(m, 3);
-    return w;
+    ResultStore[0][0] = u[0] + v[0];
+    ResultStore[0][1] = u[1] + v[1];
+    ResultStore[0][2] = u[2] + v[2];
 }
 
 /* Vector subtraction */
-Vector vecSub(Vector u, Vector v, MathStat *m, FuncStat *f)
+void vecSub(float u[3], float v[3])
 {
-    Vector w;
-#ifdef DEBUG
-    (*f).vecSub++;
-#endif
-    setVector(&w, u.x - v.x, u.y - v.y, u.z - v.z, f);
-    DEBUG_statSubtractFlt(m, 3);
-    return w;
+    ResultStore[0][0] = u[0] - v[0];
+    ResultStore[0][1] = u[1] - v[1];
+    ResultStore[0][2] = u[2] - v[2];
 }
 
 /* -1 * vector */
-Vector negVec(Vector u, FuncStat *f)
+void negVec(float u[3])
 {
-    Vector w;
-#ifdef DEBUG
-    (*f).negVec++;
-#endif
-    setVector(&w, -u.x, -u.y, -u.z, f);
-    return w;
+    ResultStore[0][0] = -u[0];
+    ResultStore[0][1] = -u[1];
+    ResultStore[0][2] = -u[2];
 }
 
 /* Get the length of a vector */
-fixedp vecLength(Vector u, MathStat *m, FuncStat *f)
+float vecLength(float u[3])
 {
-#ifdef DEBUG
-    (*f).vecLength++;
-#endif
-    DEBUG_statGroupFlt(m, 2, 0, 3, 0);
-    DEBUG_statSqrtFlt(m, 1);
-    return fp_sqrt(fp_mult(u.x, u.x) + fp_mult(u.y, u.y) + fp_mult(u.z, u.z));
+    
+    return fp_sqrt(u[0] * u[0] + u[1] * u[1] + u[2] * u[2]);
 }
 
 /* Normalised vector */
-Vector vecNormalised(Vector u, MathStat *m, FuncStat *f)
+void vecNormalised(float u[3])
 {
-#ifdef DEBUG
-    (*f).vecNormalised++;
-#endif
-    DEBUG_statMultiplyFlt(m, 3);
-    fixedp tempVar = fp_mult(u.x, u.x) + fp_mult(u.y, u.y) + fp_mult(u.z, u.z);
+    float tempVar = u[0] * u[0] + u[1] * u[1] + u[2] * u[2];
     if (tempVar == 0)
-        return u;
-    else
+    {
+        ResultStore[0][0] = u[0];
+        ResultStore[0][1] = u[1];
+        ResultStore[0][2] = u[2];
+    }
+    else // Below function calls will populate ResultsStore
         if (tempVar == 1)
-            return scalarVecMult(0x1000000, u, m, f); // Equivalent of 256 as 1 / sqrt(1.52E-5) is 256
+            scalarVecMult(0x1000000, u); // Equivalent of 256 as 1 / sqrt(1.52E-5) is 256
         else
-        {
-            DEBUG_statDivideFlt(m, 1);
-            DEBUG_statSqrtFlt(m, 1);
-            return scalarVecMult(fp_sqrt(fp_div(fp_fp1, tempVar)), u, m, f);
+            scalarVecMult(fp_sqrt(fp_fp1 / tempVar), u);
             // return scalarVecMult(fp_Flt2FP(1. / sqrtf(fp_FP2Flt(tempVar))), u, m, f);
-        } // return scalarVecMult(fp_sqrt(fp_div(fp_fp1, tempVar)), u, m, f);
+            // return scalarVecMult(fp_sqrt(fp_div(fp_fp1, tempVar)), u, m, f);
     /*
     fixedp a = vecLength(u, m, f);
     // Vector w;
