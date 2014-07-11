@@ -29,6 +29,12 @@ Texture *Textures;
 extern char *inputFile;
 extern int GlobalLightingFlag;
 
+float RGBChannels[3];
+void ReadByteFile();
+void populateDefaultScene();
+void populateScene();
+void draw();
+
 /* Function to read the byte file */
 void ReadByteFile(Scene *scene, Light lightSrc, MathStat *m, FuncStat *f)
 {
@@ -382,36 +388,32 @@ void populateScene(Scene *scene, Light lightSrc, MathStat *m, FuncStat *f)
 }
 
 /* And then the standard draw function that's been previously constructed */
-Vector draw(Ray ray, Scene scene, Light light, int recursion, MathStat *m, FuncStat *f)
+Vector draw(Ray ray, Scene scene, Light light, int recursion)
 {
     Hit hit;
-    Vector outputColour, reflectiveColour, refractiveColour, textureColour;
+    float outputColour[3], reflectiveColour[3], refractiveColour[3], textureColour[3];
     VectorAlpha ColourAlpha;
     fixedp reflection, refraction;
     Ray newRay;
     
-#ifdef DEBUG
-    (*f).draw++;
-#endif
-    
     // Default is black. We can add to this (if there's a hit) 
     // or just return it (if there's no object)
-    setVector(&outputColour, 0, 0, 0, f);
+    outputColour = {0, 0, 0};
     
-    hit = sceneIntersection(ray, scene, m, f);
+    hit = sceneIntersection(ray, scene);
     
     // Determine whether there was a hit. Otherwise default.
     if (hit.objectIndex >= 0)
     {
         // There was a hit.
-        Vector lightDirection = GlobalLightingFlag ? light.direction : vecNormalised(vecSub(light.location, hit.location, m, f), m, f);
+        Vector lightDirection = GlobalLightingFlag ? light.direction : vecNormalised(vecSub(light.location, hit.location));
         
         // Determine whether this has a texture or not
         if (scene.object[hit.objectIndex].material.textureIdx < 0)
-            setVector(&textureColour, -1, -1, -1, f);
+            textureColour = {-1, -1, -1};
         else
         {
-            ColourAlpha = getColour(Textures[scene.object[hit.objectIndex].material.textureIdx], scene, hit, m, f);
+            ColourAlpha = getColour(Textures[scene.object[hit.objectIndex].material.textureIdx], scene, hit);
             
             // Check to see if we need to create a new ray from this point:
             if (ColourAlpha.alpha < fp_fp1 && recursion >= 0)
@@ -420,9 +422,9 @@ Vector draw(Ray ray, Scene scene, Light light, int recursion, MathStat *m, FuncS
                 // This ray has the same direction but a different source (the point of intersection).
                 newRay.direction = ray.direction;
                 // Recompute the source by adding a little extra to the distance.
-                newRay.source = vecAdd(ray.source, scalarVecMult(hit.distance + 0x80, ray.direction, m, f), m, f); // hit.location;
+                newRay.source = vecAdd(ray.source, scalarVecMult(hit.distance + 0x80, ray.direction)); // hit.location;
                 // Next, emit a ray. Don't reduce the recursion count.
-                textureColour = vecAdd(scalarVecMult(ColourAlpha.alpha, ColourAlpha.vector, m, f), scalarVecMult(fp_fp1 - ColourAlpha.alpha, draw(newRay, scene, light, recursion, m, f), m, f), m, f);
+                textureColour = vecAdd(scalarVecMult(ColourAlpha.alpha, ColourAlpha.vector), scalarVecMult(1 - ColourAlpha.alpha, draw(newRay, scene, light, recursion)));
             }
             else
                 textureColour = ColourAlpha.vector;
