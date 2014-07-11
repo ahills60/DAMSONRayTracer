@@ -14,11 +14,8 @@
 
 #include "rays.h"
 
-// Add math stats
-#include "mathstats.h"
-
-// Add function stats
-#include "funcstats.h"
+extern float RGBChannels[3];
+extern float ResultStore[4][4];
 
 // void checkColour(Vector colour, int stage)
 // {
@@ -37,88 +34,101 @@
 // }
 
 /* Creates ambiance effect given a hit, a scene and some light */
-float ambiance(Hit hit, Scene scene, Light light, Vector textureColour, MathStat *m, FuncStat *f)
+void ambiance(Hit hit, Scene scene, Light light, float textureColour[3])
 {
-#ifdef DEBUG
-    (*f).ambiance++;
-#endif
-    Vector outputColour;
+    float outputColour[3];
     
     // Check to see if there's a texture
-    if (textureColour.x < 0)
+    if (textureColour[0] < 0)
+        //TODO: Resolve the material object
+        //TODO: Unravel the objects within the scenery
         outputColour = scene.object[hit.objectIndex].material.compAmbianceColour; // No texture. Apply material colour
     else
-        outputColour = scalarVecMult(scene.object[hit.objectIndex].material.ambiance, textureColour, m, f); // Texture. Apply texture colour
-    
-    return outputColour;
+    {
+        scalarVecMult(scene.object[hit.objectIndex].material.ambiance, textureColour); // Texture. Apply texture colour
+        outputColour = {ResultStore[0][0], ResultStore[0][1], ResultStore[0][2]};
+    }
+    RGBChannels[0] += outputColour[0];
+    RGBChannels[1] += outputColour[1];
+    RGBChannels[2] += outputColour[2];
 }
 
 /* Creates diffusion effect given a hit, a scene and some light */
-Vector diffusion(Hit hit, Scene scene, Light light, Vector lightDirection, Vector textureColour, MathStat *m, FuncStat *f)
+void diffusion(Hit hit, Scene scene, Light light, float lightDirection[3], float textureColour[3])
 {
-#ifdef DEBUG
-    (*f).diffusion++;
-#endif
-    Vector outputColour;
-    
-    setVector(&outputColour, 0, 0, 0, f);
+    float outputColour;
     
     if (scene.object[hit.objectIndex].material.diffusivity > 0)
     {
         // Need to compute the direction of light
-        fixedp dotProduct = dot(hit.normal, lightDirection, m, f);
+        float dotProduct = dot(hit.normal, lightDirection);
         
         // If the dot product is negative, this term shouldn't be included.
         if (dotProduct < 0)
-            return outputColour;
+            return;
         
         // Dot product is positive, so continue
-        fixedp distance = fp_mult(dotProduct, scene.object[hit.objectIndex].material.diffusivity);
-        
-        DEBUG_statMultiplyFlt(m, 1);
+        float distance = dotProduct * scene.object[hit.objectIndex].material.diffusivity;
         
         // Has a texture been defined?
-        if (textureColour.x < 0)
-            outputColour = scalarVecMult(distance, scene.object[hit.objectIndex].material.matLightColour, m, f); // No texture defined
+        if (textureColour[0] < 0)
+        {    
+            scalarVecMult(distance, scene.object[hit.objectIndex].material.matLightColour);
+            outputColour = {ResultStore[0][0], ResultStore[0][1], ResultStore[0][2]}; // No texture defined
+        }
         else
-            outputColour = scalarVecMult(distance, vecMult(textureColour, light.colour, m, f), m, f);
+        {
+            scalarVecMult(distance, textureColour * light.colour));
+            outputColour = {ResultStore[0][0], ResultStore[0][1], ResultStore[0][2]};
+        }
     }
+    else 
+        // Otherwise, return with nothing
+        return;
     
-    return outputColour;
+    RGBChannels[0] += outputColour[0];
+    RGBChannels[1] += outputColour[1];
+    RGBChannels[2] += outputColour[2];
 }
 
 /* Creates specular effect given a hit, a scene and some light */
-Vector specular(Hit hit, Scene scene, Light light, Vector lightDirection, Vector textureColour, MathStat *m, FuncStat *f)
+void specular(Hit hit, Scene scene, Light light, float lightDirection[3], float textureColour[3])
 {
-#ifdef DEBUG
-    (*f).specular++;
-#endif
-    Vector outputColour;
-    
-    setVector(&outputColour, 0, 0, 0, f);
+    float outputColour[3] = {0, 0, 0};
     
     if (scene.object[hit.objectIndex].material.specular > 0)
     {
-        fixedp dotProduct;
+        float dotProduct;
     
         // Reflective ray:
-        Ray reflection = reflectRay(hit, m, f);
-        dotProduct = dot(lightDirection, reflection.direction, m, f);
+        Ray reflection = reflectRay(hit);
+        dotProduct = dot(lightDirection, reflection.direction);
     
         if (dotProduct < 0)
-            return outputColour;
+            return;
     
-        fixedp distance = fp_mult(fp_pow(dotProduct, scene.object[hit.objectIndex].material.shininess), scene.object[hit.objectIndex].material.specular);
-        DEBUG_statMultiplyFlt(m, 1);
-        DEBUG_statPower(m, 1);
-    
+        float distance = fp_pow(dotProduct, scene.object[hit.objectIndex].material.shininess) * scene.object[hit.objectIndex].material.specular);
+            
         // Has a texture been defined?
-        if (textureColour.x < 0)
-            outputColour = scalarVecMult(distance, scene.object[hit.objectIndex].material.matLightColour, m, f); // No texture defined
+        if (textureColour[0] < 0)
+        {
+            scalarVecMult(distance, scene.object[hit.objectIndex].material.matLightColour); // No texture defined
+            outputColour = {ResultStore[0][0], ResultStore[0][1], ResultStore[0][2]};
+        }
         else
-            outputColour = scalarVecMult(distance, vecMult(textureColour, light.colour, m, f), m, f);
+        {
+            vecMult(textureColour, light.colour)
+            scalarVecMult(distance, {ResultStore[0][0], ResultStore[0][1], ResultStore[0][2]});
+            outputColour = {ResultStore[0][0], ResultStore[0][1], ResultStore[0][2]};
+        }
     }
-    return outputColour;
+    else
+        // Otherwise return with nothing
+        return;
+    
+    RGBChannels[0] += outputColour[0];
+    RGBChannels[1] += outputColour[1];
+    RGBChannels[2] += outputColour[2];
 }
 
 #endif
