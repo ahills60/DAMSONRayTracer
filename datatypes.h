@@ -216,56 +216,36 @@ void vecNormalised(float u[3])
 }
 
 /* Matrix multiplied by a vector */
-Vector matVecMult(Matrix F, Vector u, MathStat *m, FuncStat *f)
+void matVecMult(float F[16], float u[3])
 {
-#ifdef DEBUG
-    (*f).matVecMult++;
-#endif
-    Vector w;
     // Note that we don't consider the last row within the matrix. This is discarded deliberately.
-    setVector(&w, fp_mult(F.m[0][0], u.x) + fp_mult(F.m[0][1], u.y) + fp_mult(F.m[0][2], u.z) + F.m[0][3],
-                  fp_mult(F.m[1][0], u.x) + fp_mult(F.m[1][1], u.y) + fp_mult(F.m[1][2], u.z) + F.m[1][3],
-                  fp_mult(F.m[2][0], u.x) + fp_mult(F.m[2][1], u.y) + fp_mult(F.m[2][2], u.z) + F.m[2][3], f);
-    DEBUG_statGroupFlt(m, 9, 0, 9, 0);
-    return w;
+    ResultStore[0][0] = F[0] * u[0] + F[1] * u[1] + F[2] * u[2] + F[3];
+    ResultStore[0][1] = F[4] * u[0] + F[5] * u[1] + F[6] * u[2] + F[7];
+    ResultStore[0][2] = F[8] * u[0] + F[9] * u[1] + F[10] * u[2] + F[11];
 }
 
 /* Matrix multiplied by a matrix */
-Matrix matMult(Matrix F, Matrix G, MathStat *ma, FuncStat *f)
+void matMult(float F[16], float G[16])
 {
-#ifdef DEBUG
-    (*f).matMult++;
-#endif
-    Matrix H;
     int m, n, p;
     
     for (m = 0; m < 4; m++)
     {
-        DEBUG_statPlusInt(ma, 1);
         for (n = 0; n < 4; n++)
         {
-            DEBUG_statPlusInt(ma, 1);
             // Initialise new matrix first
-            H.m[n][m] = 0;
+            ResultStore[n][m] = 0;
             
             // Now populate with the multiplication
             for (p = 0; p < 4; p++)
-            {
-                 DEBUG_statPlusInt(ma, 1);
-                 H.m[n][m] += fp_mult(F.m[n][p], G.m[p][m]);
-                 DEBUG_statGroupFlt(ma, 1, 0, 1, 0);
-            }
+                 ResultStore[n][m] += F[n * 4 + p] * G[p * 4 + m]; // F[n][p] * G[p][m];
         }
     }
-    return H;
 }
 
 /* Create an identity matrix */
 Matrix genIdentMat(MathStat *ma, FuncStat *f)
 {
-#ifdef DEBUG
-    (*f).genIdentMat++;
-#endif
     Matrix H;
     fixedp m[16] = {fp_fp1, 0, 0, 0,
                     0, fp_fp1, 0, 0,
