@@ -27,3 +27,25 @@
 #define HitDataMu              15
 #define HitDataMv              16
 #define HitDatabitshift        17
+
+// ObjectDB offsets:
+#define TriangleAx              0
+#define TriangleAy              1
+#define TriangleAz              2
+#define TriangleAu              3
+#define TriangleAv              4
+#define TriangleBu              5
+#define TriangleBv              6
+#define TriangleCu              7
+#define TriangleCv              8
+#define TriangleDominantAxisIdx 9
+#define Trianglenormcrvmuwmux   10
+#define Trianglenormcrvmuwmuy   11
+#define Trianglenormcrvmuwmuz   12
+#define TriangleNUDom           13
+#define TriangleNVDom           14
+#define TriangleNDDom           15
+#define TriangleBUDom           16
+#define TriangleBVDom           17
+#define TriangleCUDom           18
+#define TriangleCDDom           19
