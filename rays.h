@@ -8,13 +8,6 @@ int DomMod[5] = {0, 1, 2, 0, 1};
 extern float HitData[18];
 extern float ResultStore[16];
 
-// Rays are in form: source (3), direction (3).
-#define RaySourcex       0
-#define RaySourcey       1
-#define RaySourcez       2
-#define RayDirectionx    3
-#define RayDirectiony    4
-#define RayDirectionz    5
 
 
 float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float currentDistance)

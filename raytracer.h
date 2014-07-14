@@ -15,13 +15,23 @@
 #define PORT_Y          1001
 #define PORT_Z          1002
 
+#define MAX_OBJECTS     200
+#define MAX_TRIANGLES   10000
+
+// Rays are in form: source (3), direction (3).
+#define RaySourcex       0
+#define RaySourcey       1
+#define RaySourcez       2
+#define RayDirectionx    3
+#define RayDirectiony    4
+#define RayDirectionz    5
 
 // Hit offsets:
 #define HitDataHitLocation     0
 #define HitDataHitNormal       3
 #define HitDataRaySource       6
 #define HitDataRayDirection    9
-#define HitDataObjIdx          12
+#define HitDataObjectIndex     12
 #define HitDataDistance        13
 #define HitDataTriangleIndex   14
 #define HitDataMu              15
