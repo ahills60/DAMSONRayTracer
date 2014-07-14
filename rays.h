@@ -1,12 +1,17 @@
 
 float triangleIntersection(float ray[6], int triangleIdx, float currentDistance);
+void objectIntersection(float ray[6], int objectIdx);
 
 // Modulo vector:
 int DomMod[5] = {0, 1, 2, 0, 1};
 
 // External objects
+extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
 extern float HitData[18];
 extern float ResultStore[16];
+extern int noObjects;
+extern int noTriangles[MAX_OBJECTS];
+
 
 
 
@@ -171,4 +176,69 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     ResultStore[2] = (float) bitdiff1;
     
     return dist;
+}
+
+void objectIntersection(float ray[6], int objectIdx)
+{
+    float Mu, Mv, intersectionPoint, nearestIntersection = 0x7FFFFFFF;
+    int n, i, nearestIdx, bitshift, nearestbitshift = 32;
+    float dirVec[3], normVec[3], location[3];
+    
+    HitData[HitDataDistance] = 0;
+    
+    for (i = 0; i < 3; i += 1)
+        dirVec[i] = ray[RaySourcex + i];
+    
+    for (n = 0; n < noTriangles[objectIdx]; n += 1)
+    {
+        intersectionPoint = triangleIntersection(ray, objectIdx, n, nearestIntersection);
+        
+        if (ResultStore[2] <= nearestbitshift && intersectionPoint > 0 && intersectionPoint < nearestIntersection)
+        {
+            // Populate the vectors
+            for (i = 0; i < 3; i += 1)
+                normVec[i] = ObjectDB[objectIdx][n][Trianglenormcrvmuwmux + i];
+            
+            // Determine whether the triangle is front facing.
+            if (dot(normVec, dirVec) < EPS)
+            {
+                // This is better, so save the results of this
+                nearestIdx = n;
+                nearestIntersection = intersectionPoint;
+                nearestbitshift = ResultStore[2];
+                Mu = ResultStore[0];
+                Mv = ResultStore[1];
+            }
+        }
+    }
+    
+    // Only complete the hit data iff there was an intersection
+    if (nearestIntersection > 0 && nearestIntersection < 0x7FFFFFFF)
+    {
+        scalarVecMult(nearestIntersection, dirVec);
+        // Create the two vectors
+        for (i = 0; i < 3; i += 1)
+        {
+            dirVec[i] = ResultStore[i];
+            location[i] = ray[i];
+        }
+        // Add the two vectors together. The result is stored in the results store.
+        vecAdd(location, dirVec);
+        
+        for (i = 0; i < 3; i += 1)
+        {
+            HitData[HitDataHitLocation + i] = ResultStore[i];
+            HitData[HitDataHitNormal + i] = ObjectDB[objectIdx][nearestIdx][Trianglenormcrvmuwmux + i];
+            HitData[HitDataRaySource + i] = ray[RaySourcex + i];
+            HitData[HitDataRayDirection + i] = ray[RayDirectionx + i];
+        }
+        HitData[HitDataDistance] = nearestIntersection;
+        HitData[HitDataMu] = Mu;
+        HitData[HitDataMv] = Mv;
+        HitData[HitDatabitshift] = nearestbitshift;
+        HitData[HitDataTriangleIndex] = nearestIdx;
+        HitData[HitDataObjectIndex] = objectIdx;
+    }
+    else
+        HitData[HitDataObjectIndex] = -1;
 }
