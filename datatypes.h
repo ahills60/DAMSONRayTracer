@@ -74,18 +74,18 @@ Triangle;
 */
 
 /* Set the UV coordinates */
-void setUVCoord(UVCoord *a, fixedp u, fixedp v)
+void setUVCoord(float u, float v)
 {
-    (*a).U = u;
-    (*a).V = v;
+    ResultStore[0] = u;
+    ResultStore[1] = v;
 }
 
 /* Set the coordinates of a vector */
-void setVector(Vector *v, fixedp x, fixedp y, fixedp z, FuncStat *f)
+void setVector(float x, float y, float z)
 {
-    (*v).x = x;
-    (*v).y = y;
-    (*v).z = z;
+    ResultStore[0] = x;
+    ResultStore[1] = y;
+    ResultStore[2] = z;
 }
 
 // /* Fast convert of list to matrix */
@@ -109,7 +109,9 @@ void setVector(Vector *v, fixedp x, fixedp y, fixedp z, FuncStat *f)
 /* Convert from degrees to radians */
 float deg2rad(float deg)
 {
-    return deg * M_PI / 180.0;
+    // Equivalent to deg * pi / 180, but with increased resolution:
+    // (deg * 256 * pi / 180) / 256
+    return (deg * 4.468042886) >> 8; // * M_PI / 180.0;
 }
 
 /* Vector multiply */
