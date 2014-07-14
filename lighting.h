@@ -43,20 +43,20 @@ void ambiance(Hit hit, Scene scene, Light light, float textureColour[3])
         //TODO: Resolve the material object
         //TODO: Unravel the objects within the scenery
         outputColour = scene.object[hit.objectIndex].material.compAmbianceColour; // No texture. Apply material colour
+        for (i = 0; i < 3; i += 1)
+            RGBChannels[i] += outputColour[i];
     else
     {
         scalarVecMult(scene.object[hit.objectIndex].material.ambiance, textureColour); // Texture. Apply texture colour
-        outputColour = {ResultStore[0][0], ResultStore[0][1], ResultStore[0][2]};
+        for (i = 0; i < 3; i += 1)
+            RGBChannels[i] += ResultStore[i];
     }
-    RGBChannels[0] += outputColour[0];
-    RGBChannels[1] += outputColour[1];
-    RGBChannels[2] += outputColour[2];
 }
 
 /* Creates diffusion effect given a hit, a scene and some light */
 void diffusion(Hit hit, Scene scene, Light light, float lightDirection[3], float textureColour[3])
 {
-    float outputColour;
+    int i;
     
     if (scene.object[hit.objectIndex].material.diffusivity > 0)
     {
@@ -73,28 +73,26 @@ void diffusion(Hit hit, Scene scene, Light light, float lightDirection[3], float
         // Has a texture been defined?
         if (textureColour[0] < 0)
         {    
+             // No texture defined
             scalarVecMult(distance, scene.object[hit.objectIndex].material.matLightColour);
-            outputColour = {ResultStore[0][0], ResultStore[0][1], ResultStore[0][2]}; // No texture defined
         }
         else
         {
             scalarVecMult(distance, textureColour * light.colour));
-            outputColour = {ResultStore[0][0], ResultStore[0][1], ResultStore[0][2]};
         }
     }
     else 
         // Otherwise, return with nothing
         return;
     
-    RGBChannels[0] += outputColour[0];
-    RGBChannels[1] += outputColour[1];
-    RGBChannels[2] += outputColour[2];
+    for (i = 0; i < 3; i += 1)
+        RGBChannels[i] += ResultStore[i];
 }
 
 /* Creates specular effect given a hit, a scene and some light */
 void specular(Hit hit, Scene scene, Light light, float lightDirection[3], float textureColour[3])
 {
-    float outputColour[3] = {0, 0, 0};
+    int i;
     
     if (scene.object[hit.objectIndex].material.specular > 0)
     {
@@ -113,22 +111,19 @@ void specular(Hit hit, Scene scene, Light light, float lightDirection[3], float 
         if (textureColour[0] < 0)
         {
             scalarVecMult(distance, scene.object[hit.objectIndex].material.matLightColour); // No texture defined
-            outputColour = {ResultStore[0][0], ResultStore[0][1], ResultStore[0][2]};
         }
         else
         {
             vecMult(textureColour, light.colour)
-            scalarVecMult(distance, {ResultStore[0][0], ResultStore[0][1], ResultStore[0][2]});
-            outputColour = {ResultStore[0][0], ResultStore[0][1], ResultStore[0][2]};
+            scalarVecMult(distance, {ResultStore[0], ResultStore[1], ResultStore[2]});
         }
     }
     else
         // Otherwise return with nothing
         return;
     
-    RGBChannels[0] += outputColour[0];
-    RGBChannels[1] += outputColour[1];
-    RGBChannels[2] += outputColour[2];
+    for (i = 0; i < 3; i += 1)
+        RGBChannels[i] += ResultStore[i];
 }
 
 #endif
