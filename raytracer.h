@@ -14,3 +14,16 @@
 #define PORT_X          1000
 #define PORT_Y          1001
 #define PORT_Z          1002
+
+
+// Hit offsets:
+#define HitDataHitLocation     0
+#define HitDataHitNormal       3
+#define HitDataRaySource       6
+#define HitDataRayDirection    9
+#define HitDataObjIdx          12
+#define HitDataDistance        13
+#define HitDataTriangleIndex   14
+#define HitDataMu              15
+#define HitDataMv              16
+#define HitDatabitshift        17
