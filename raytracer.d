@@ -21,7 +21,7 @@ int noExternalCoordinates = 0;
 int Terminate = 0;
 
 // Result storage
-float ResultStore[4][4];
+float ResultStore[16];
 
 // Prototypes
 void datainterrupt(int, int, int, int);

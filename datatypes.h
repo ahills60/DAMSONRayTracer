@@ -6,7 +6,6 @@
  *  Created on: 3 Dec 2013
  *      Author: andrew
  */
-#include <math.h>
 // Include fixed point maths
 #include "fpmath.h"
 
@@ -16,7 +15,7 @@
 // Define some constants
 #define EPS        6 // 512 // 6 // 31 // Was 0.00001
 
-extern int ResultStore[4][4];
+extern int ResultStore[16];
 
 /*
 // UV coordinate structure
@@ -89,23 +88,23 @@ void setVector(Vector *v, fixedp x, fixedp y, fixedp z, FuncStat *f)
     (*v).z = z;
 }
 
-/* Fast convert of list to matrix */
-void setMatrix(Matrix *F, fixedp *m, MathStat *ma, FuncStat *f)
-{
-    int n, p;
-    
-    for (n = 0; n < 4; n++)
-    {
-        DEBUG_statPlusInt(ma, 1); // for the loop
-        for (p = 0; p < 4; p++)
-        {
-            DEBUG_statPlusInt(ma, 1); // for the loop
-            (*F).m[p][n] = m[n + 4 * p];
-            
-            DEBUG_statGroupInt(ma, 1, 0, 1, 0);
-        }
-    }
-}
+// /* Fast convert of list to matrix */
+// void setMatrix(Matrix *F, fixedp *m, MathStat *ma, FuncStat *f)
+// {
+//     int n, p;
+//
+//     for (n = 0; n < 4; n++)
+//     {
+//         DEBUG_statPlusInt(ma, 1); // for the loop
+//         for (p = 0; p < 4; p++)
+//         {
+//             DEBUG_statPlusInt(ma, 1); // for the loop
+//             (*F).m[p][n] = m[n + 4 * p];
+//
+//             DEBUG_statGroupInt(ma, 1, 0, 1, 0);
+//         }
+//     }
+// }
 
 /* Convert from degrees to radians */
 float deg2rad(float deg)
@@ -116,9 +115,9 @@ float deg2rad(float deg)
 /* Vector multiply */
 void vecMult(float u[3], float v[3])
 {
-    ResultStore[0][0] = u[0] * v[0];
-    ResultStore[0][1] = u[1] * v[1];
-    ResultStore[0][2] = u[2] * v[2];
+    ResultStore[0] = u[0] * v[0];
+    ResultStore[1] = u[1] * v[1];
+    ResultStore[2] = u[2] * v[2];
 }
 
 /* Dot product of two vectors */
@@ -131,49 +130,49 @@ float dot(float u[3], float v[3])
 void cross(float u[3], float v[3])
 {
     // {ResultStore[0][0], ResultStore[0][1], ResultStore[0][2]}
-    ResultStore[0][0] = u[1] * v[2] - v[1] * u[2];
-    ResultStore[0][1] = u[2] * v[0] - v[2] * u[0];
-    ResultStore[0][2] = u[0] * v[1] - v[0] * u[1];
+    ResultStore[0] = u[1] * v[2] - v[1] * u[2];
+    ResultStore[1] = u[2] * v[0] - v[2] * u[0];
+    ResultStore[2] = u[0] * v[1] - v[0] * u[1];
 }
 
 /* Scalar multiplication with a vector */
 void scalarVecMult(float a, float u[3])
 {
-    ResultStore[0][0] = a * u[0];
-    ResultStore[0][1] = a * u[1];
-    ResultStore[0][2] = a * u[2];
+    ResultStore[0] = a * u[0];
+    ResultStore[1] = a * u[1];
+    ResultStore[2] = a * u[2];
 }
 
 /* Scalar division with a vector */
 void scalarVecDiv(float a, float u[3])
 {
-    ResultStore[0][0] = u[0] / a;
-    ResultStore[0][1] = u[1] / a;
-    ResultStore[0][2] = u[2] / a;
+    ResultStore[0] = u[0] / a;
+    ResultStore[1] = u[1] / a;
+    ResultStore[2] = u[2] / a;
 }
 
 /* Vector addition */
 void vecAdd(float u[3], float v[3])
 {
-    ResultStore[0][0] = u[0] + v[0];
-    ResultStore[0][1] = u[1] + v[1];
-    ResultStore[0][2] = u[2] + v[2];
+    ResultStore[0] = u[0] + v[0];
+    ResultStore[1] = u[1] + v[1];
+    ResultStore[2] = u[2] + v[2];
 }
 
 /* Vector subtraction */
 void vecSub(float u[3], float v[3])
 {
-    ResultStore[0][0] = u[0] - v[0];
-    ResultStore[0][1] = u[1] - v[1];
-    ResultStore[0][2] = u[2] - v[2];
+    ResultStore[0] = u[0] - v[0];
+    ResultStore[1] = u[1] - v[1];
+    ResultStore[2] = u[2] - v[2];
 }
 
 /* -1 * vector */
 void negVec(float u[3])
 {
-    ResultStore[0][0] = -u[0];
-    ResultStore[0][1] = -u[1];
-    ResultStore[0][2] = -u[2];
+    ResultStore[0] = -u[0];
+    ResultStore[1] = -u[1];
+    ResultStore[2] = -u[2];
 }
 
 /* Get the length of a vector */
@@ -189,9 +188,9 @@ void vecNormalised(float u[3])
     float tempVar = u[0] * u[0] + u[1] * u[1] + u[2] * u[2];
     if (tempVar == 0)
     {
-        ResultStore[0][0] = u[0];
-        ResultStore[0][1] = u[1];
-        ResultStore[0][2] = u[2];
+        ResultStore[0] = u[0];
+        ResultStore[1] = u[1];
+        ResultStore[2] = u[2];
     }
     else // Below function calls will populate ResultsStore
         if (tempVar == 1)
@@ -219,115 +218,89 @@ void vecNormalised(float u[3])
 void matVecMult(float F[16], float u[3])
 {
     // Note that we don't consider the last row within the matrix. This is discarded deliberately.
-    ResultStore[0][0] = F[0] * u[0] + F[1] * u[1] + F[2] * u[2] + F[3];
-    ResultStore[0][1] = F[4] * u[0] + F[5] * u[1] + F[6] * u[2] + F[7];
-    ResultStore[0][2] = F[8] * u[0] + F[9] * u[1] + F[10] * u[2] + F[11];
+    ResultStore[0] = F[0] * u[0] + F[1] * u[1] + F[2] * u[2] + F[3];
+    ResultStore[1] = F[4] * u[0] + F[5] * u[1] + F[6] * u[2] + F[7];
+    ResultStore[2] = F[8] * u[0] + F[9] * u[1] + F[10] * u[2] + F[11];
 }
 
 /* Matrix multiplied by a matrix */
 void matMult(float F[16], float G[16])
 {
-    int m, n, p;
+    int m, n, p, n4;
     
     for (m = 0; m < 4; m++)
     {
         for (n = 0; n < 4; n++)
         {
+            n4 = 4 * n;
             // Initialise new matrix first
-            ResultStore[n][m] = 0;
+            ResultStore[n4 + m] = 0;
             
             // Now populate with the multiplication
             for (p = 0; p < 4; p++)
-                 ResultStore[n][m] += F[n * 4 + p] * G[p * 4 + m]; // F[n][p] * G[p][m];
+                 ResultStore[n4 + m] += F[n4 + p] * G[p * 4 + m]; // F[n][p] * G[p][m];
         }
     }
 }
 
 /* Create an identity matrix */
-Matrix genIdentMat(MathStat *ma, FuncStat *f)
+void genIdentMat()
 {
-    Matrix H;
-    fixedp m[16] = {fp_fp1, 0, 0, 0,
-                    0, fp_fp1, 0, 0,
-                    0, 0, fp_fp1, 0,
-                    0, 0, 0, fp_fp1};
-    setMatrix(&H, m, ma, f);
-    return H;
+    ResultStore = {1, 0, 0, 0,
+                   0, 1, 0, 0,
+                   0, 0, 1, 0,
+                   0, 0, 0, 1};
 }
 
 /* Create a rotation matrix for X-axis rotations */
-Matrix genXRotateMat(fixedp a, MathStat *ma, FuncStat *f)
+void genXRotateMat(float a)
 {
-#ifdef DEBUG
-    (*f).genXRotateMat++;
-#endif
-    Matrix H;
-    float cosa = cos(deg2rad(fp_FP2Flt(a), ma, f)), sina = sin(deg2rad(fp_FP2Flt(a), ma, f));
-    DEBUG_statSine(ma, 1);
-    DEBUG_statCosine(ma, 1);
+    float cosa = fp_cos(deg2rad(a)), sina = fp_sin(deg2rad(a));
     
-    fixedp fpcosa = fp_Flt2FP(cosa);
-    fixedp fpsina = fp_Flt2FP(sina);
-    
-    fixedp m[16] = {fp_fp1, 0, 0, 0,
-                    0, fpcosa, -fpsina, 0,
-                    0, fpsina, fpcosa, 0,
-                    0, 0, 0, fp_fp1};
-   setMatrix(&H, m, ma, f);
-   return H;
+    ResultStore = {1, 0, 0, 0,
+                   0, cosa, -sina, 0,
+                   0, sina, cosa, 0,
+                   0, 0, 0, 1};
 }
 
 /* Create a rotation matrix for Y-axis rotations */
-Matrix genYRotateMat(fixedp a, MathStat *ma, FuncStat *f)
+void genYRotateMat(float a)
 {
-#ifdef DEBUG
-    (*f).genYRotateMat++;
-#endif
-    Matrix H;
-    float cosa = cos(deg2rad(fp_FP2Flt(a), ma, f)), sina = sin(deg2rad(fp_FP2Flt(a), ma, f));
-    DEBUG_statSine(ma, 1);
-    DEBUG_statCosine(ma, 1);
+    float cosa = cos(deg2rad(a)), sina = sin(deg2rad(a));
     
-    fixedp fpcosa = fp_Flt2FP(cosa);
-    fixedp fpsina = fp_Flt2FP(sina);
-    
-    fixedp m[16] = {fpcosa, 0, fpsina, 0,
-                   0, fp_fp1, 0, 0,
-                   -fpsina, 0, fpcosa, 0,
-                   0, 0, 0, fp_fp1};
-   setMatrix(&H, m, ma, f);
-   return H;
+    ResultStore = {cosa, 0, sina, 0,
+                   0, 1, 0, 0,
+                   -sina, 0, cosa, 0,
+                   0, 0, 0, 1};
 }
 
 /* Create a rotation matrix for Z-axis rotations */
-Matrix genZRotateMat(fixedp a, MathStat *ma, FuncStat *f)
+void genZRotateMat(fixedp a)
 {
-#ifdef DEBUG
-    (*f).genZRotateMat++;
-#endif
-    Matrix H;
-    float cosa = cos(deg2rad(fp_FP2Flt(a), ma, f)), sina = sin(deg2rad(fp_FP2Flt(a), ma, f));
-    DEBUG_statSine(ma, 1);
-    DEBUG_statCosine(ma, 1);
+    float cosa = cos(deg2rad(a)), sina = sin(deg2rad(a));
     
-    fixedp fpcosa = fp_Flt2FP(cosa);
-    fixedp fpsina = fp_Flt2FP(sina);
-    
-    fixedp m[16] = {fpcosa, -fpsina, 0, 0,
-                   fpsina, fpcosa, 0, 0,
-                   0, 0, fp_fp1, 0,
-                   0, 0, 0, fp_fp1};
-   setMatrix(&H, m, ma, f);
-   return H;
+    ResultStore = {cosa, -sina, 0, 0,
+                   sina, cosa, 0, 0,
+                   0, 0, 1, 0,
+                   0, 0, 0, 1};
 }
 
 /* Combine the three matrix rotations to give a single rotation matrix */
-Matrix getRotateMatrix(fixedp ax, fixedp ay, fixedp az, MathStat *ma, FuncStat *f)
+void getRotateMatrix(float ax, float ay, float az)
 {
-#ifdef DEBUG
-    (*f).getRotateMatrix++;
-#endif
-    return matMult(matMult(genXRotateMat(ax, ma, f), genYRotateMat(ay, ma, f), ma, f), genZRotateMat(az, ma, f), ma, f);
+    int i;
+    float mat[16];
+    genXRotateMat(ax);
+    // Copy result
+    for (i = 0; i < 16; i += 1)
+        mat[i] = ResultStore[i];
+    genYRotateMat(ay);
+    matMult(mat, ResultStore);
+    // Copy result
+    for (i = 0; i < 16; i += 1)
+        mat[i] = ResultStore[i];
+    genZRotateMat(az);
+    matMult(mat, ResultStore);
 }
 
 Matrix genTransMatrix(fixedp tx, fixedp ty, fixedp tz, MathStat *ma, FuncStat *f)
