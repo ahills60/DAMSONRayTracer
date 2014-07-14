@@ -7,13 +7,15 @@
  *      Author: andrew
  */
 
-#ifndef LIGHTING_H_
-#define LIGHTING_H_
+void ambiance(float textureColour[3]);
+void diffusion(float lightDirection[3], float textureColour[3]);
+void specular(float lightDirection[3], float textureColour[3]);
 
 #include "fpmath.h"
 
 #include "rays.h"
 
+extern float HitData[18];
 extern float RGBChannels[3];
 extern float ResultStore[4][4];
 
@@ -125,5 +127,3 @@ void specular(Hit hit, Scene scene, Light light, float lightDirection[3], float 
     for (i = 0; i < 3; i += 1)
         RGBChannels[i] += ResultStore[i];
 }
-
-#endif

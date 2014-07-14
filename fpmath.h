@@ -1,5 +1,5 @@
-#ifndef FPMATH_H_
-#define FPMATH_H_
+float fp_sin(float a);
+float fp_cos(float a);
 
 #define MAX_VAL 0x7FFFFFFF;
 #define MIN_VAL 0x80000000;
@@ -21,12 +21,12 @@ float fp_sin(float a)
     a += (a < -FP_PI) * FP_2PI;
     // printf("  Step 2: 0x%X, %f\n", a, fp_FP2Flt(a) * 180. / 3.141592653589793238);
     
-#ifdef DEBUG
-    if (a > FP_PI)
-        printf("Sine function out of range: 0x%X\n", a);
-    if (a < -FP_PI)
-        printf("Sine function out of range: 0x%X\n", a);
-#endif
+// #ifdef DEBUG
+//     if (a > FP_PI)
+//         printf("Sine function out of range: 0x%X\n", a);
+//     if (a < -FP_PI)
+//         printf("Sine function out of range: 0x%X\n", a);
+// #endif
     
     // Use fast sine parabola approximation
     float output = (FP_CONST_B * a) + ((FP_CONST_C * a) * fabs(a));

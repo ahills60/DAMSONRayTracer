@@ -9,11 +9,8 @@
 // Include fixed point maths
 #include "fpmath.h"
 
-#ifndef DATATYPES_H_
-#define DATATYPES_H_
-
 // Define some constants
-#define EPS        6 // 512 // 6 // 31 // Was 0.00001
+#define EPS        0x6 // 512 // 6 // 31 // Was 0.00001
 
 extern int ResultStore[16];
 
@@ -547,5 +544,3 @@ UVCoord uvSub(UVCoord a, UVCoord b, MathStat *m)
     DEBUG_statSubtractFlt(m, 2);
     return r;
 }
-
-#endif /* DATATYPES_H_ */

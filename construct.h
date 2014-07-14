@@ -8,9 +8,6 @@
  *      Author: andrew
  */
 
-#ifndef BYTECODECONSTRUCT_H_
-#define BYTECODECONSTRUCT_H_
-
 #include <stdio.h>
 #include "fpmath.h"
 #include "craytracer.h"
@@ -461,5 +458,3 @@ Vector draw(Ray ray, Scene scene, Light light, int recursion)
     
     return outputColour;
 }
-
-#endif
