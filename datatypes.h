@@ -117,9 +117,9 @@ float deg2rad(float deg)
 /* Vector multiply */
 void vecMult(float u[3], float v[3])
 {
-    ResultStore[0] = u[0] * v[0];
-    ResultStore[1] = u[1] * v[1];
-    ResultStore[2] = u[2] * v[2];
+    int i;
+    for (i = 0; i < 3; i += 1)
+        ResultStore[i] = u[i] * v[i];
 }
 
 /* Dot product of two vectors */
@@ -140,41 +140,41 @@ void cross(float u[3], float v[3])
 /* Scalar multiplication with a vector */
 void scalarVecMult(float a, float u[3])
 {
-    ResultStore[0] = a * u[0];
-    ResultStore[1] = a * u[1];
-    ResultStore[2] = a * u[2];
+    int i;
+    for (i = 0; i < 3; i += 1)
+        ResultStore[i] = a * u[i];
 }
 
 /* Scalar division with a vector */
 void scalarVecDiv(float a, float u[3])
 {
-    ResultStore[0] = u[0] / a;
-    ResultStore[1] = u[1] / a;
-    ResultStore[2] = u[2] / a;
+    int i;
+    for (i = 0; i < 3; i += 1)
+        ResultStore[i] = u[i] / a;
 }
 
 /* Vector addition */
 void vecAdd(float u[3], float v[3])
 {
-    ResultStore[0] = u[0] + v[0];
-    ResultStore[1] = u[1] + v[1];
-    ResultStore[2] = u[2] + v[2];
+    int i;
+    for (i = 0; i < 3; i += 1)
+        ResultStore[i] = u[i] + v[i];
 }
 
 /* Vector subtraction */
 void vecSub(float u[3], float v[3])
 {
-    ResultStore[0] = u[0] - v[0];
-    ResultStore[1] = u[1] - v[1];
-    ResultStore[2] = u[2] - v[2];
+    int i;
+    for (i = 0; i < 3; i += 1)
+        ResultStore[i] = u[i] - v[i];
 }
 
 /* -1 * vector */
 void negVec(float u[3])
 {
-    ResultStore[0] = -u[0];
-    ResultStore[1] = -u[1];
-    ResultStore[2] = -u[2];
+    int i;
+    for (i = 0; i < 3; i += 1)
+        ResultStore[i] = -u[i];
 }
 
 /* Get the length of a vector */
@@ -248,43 +248,60 @@ void matMult(float F[16], float G[16])
 /* Create an identity matrix */
 void genIdentMat()
 {
-    ResultStore = {1, 0, 0, 0,
+    int i;
+    float m[16] = {1, 0, 0, 0,
                    0, 1, 0, 0,
                    0, 0, 1, 0,
                    0, 0, 0, 1};
+    // Copy the array to the results store.
+    for (i = 0; i < 16; i += 1)
+        ResultStore[i] = m[i];
 }
 
 /* Create a rotation matrix for X-axis rotations */
 void genXRotateMat(float a)
 {
+    int i;
     float cosa = fp_cos(deg2rad(a)), sina = fp_sin(deg2rad(a));
     
-    ResultStore = {1, 0, 0, 0,
+    float m[16] = {1, 0, 0, 0,
                    0, cosa, -sina, 0,
                    0, sina, cosa, 0,
                    0, 0, 0, 1};
+    // Copy the array to the results store.
+    for (i = 0; i < 16; i += 1)
+        ResultStore[i] = m[i];
 }
 
 /* Create a rotation matrix for Y-axis rotations */
 void genYRotateMat(float a)
 {
+    int i;
     float cosa = cos(deg2rad(a)), sina = sin(deg2rad(a));
     
-    ResultStore = {cosa, 0, sina, 0,
+    float m[16] = {cosa, 0, sina, 0,
                    0, 1, 0, 0,
                    -sina, 0, cosa, 0,
                    0, 0, 0, 1};
+    // Copy the array to the results store.
+    for (i = 0; i < 16; i += 1)
+        ResultStore[i] = m[i];
 }
 
 /* Create a rotation matrix for Z-axis rotations */
 void genZRotateMat(fixedp a)
 {
+    int i;
     float cosa = cos(deg2rad(a)), sina = sin(deg2rad(a));
     
-    ResultStore = {cosa, -sina, 0, 0,
+    float m[16] = {cosa, -sina, 0, 0,
                    sina, cosa, 0, 0,
                    0, 0, 1, 0,
                    0, 0, 0, 1};
+                   
+    // Copy the array to the results store.
+    for (i = 0; i < 16; i += 1)
+        ResultStore[i] = m[i];
 }
 
 /* Combine the three matrix rotations to give a single rotation matrix */
@@ -305,32 +322,30 @@ void getRotateMatrix(float ax, float ay, float az)
     matMult(mat, ResultStore);
 }
 
-Matrix genTransMatrix(fixedp tx, fixedp ty, fixedp tz, MathStat *ma, FuncStat *f)
+void genTransMatrix(float tx, float ty, float tz)
 {
-#ifdef DEBUG
-    (*f).genTransMatrix++;
-#endif
-    Matrix H;
-    fixedp m[16] = {fp_fp1, 0, 0, tx,
-                   0, fp_fp1, 0, ty,
-                   0, 0, fp_fp1, tz,
-                   0, 0, 0, fp_fp1};
-   setMatrix(&H, m, ma, f);
-   return H;
+    int i;
+    float m[16] = {1, 0, 0, tx,
+                   0, 1, 0, ty,
+                   0, 0, 1, tz,
+                   0, 0, 0, 1};
+                   
+    // Copy the array to the results store.
+    for (i = 0; i < 16; i += 1)
+        ResultStore[i] = m[i];
 }
 
-Matrix genScaleMatrix(fixedp sx, fixedp sy, fixedp sz, MathStat *ma, FuncStat *f)
+void genScaleMatrix(float sx, float sy, float sz)
 {
-#ifdef DEBUG
-    (*f).genScaleMatrix++;
-#endif
-    Matrix H;
-    fixedp m[16] = {sx, 0, 0, 0,
+    int i;
+    float m[16] = {sx, 0, 0, 0,
                    0, sy, 0, 0,
                    0, 0, sz, 0,
-                   0, 0, 0, fp_fp1};
-    setMatrix(&H, m, ma, f);
-    return H;
+                   0, 0, 0, 1};
+                   
+   // Copy the array to the results store.
+    for (i = 0; i < 16; i += 1)
+        ResultStore[i] = m[i];
 }
 
 void setTriangle(Triangle *triangle, Vector u, Vector v, Vector w, MathStat *m, FuncStat *f)
