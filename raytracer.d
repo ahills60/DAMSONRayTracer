@@ -26,9 +26,11 @@ float ResultStore[16];
 // Hit data: hit location (3), hit normal (3), ray source (3), ray direction (3), objIdx (1), distance (1), triIndex (1), Mu (1), Mv (1), bitshift (1) = 18
 float HitData[18];
 
-// ObjectDB holds triangle information. 
+// ObjectDB holds triangle information. ObjectDB[ObjectIndex][TriangleIndex][Parameter]
 // Holds: TriangleU (3), TriangleUuv (2), TriangleVuv (2), TriangleWuv (2), DominantAxis (1), normcrvmuwmu (3), NUDom (1), NVDom (1), NDDom (1), BUDom (1), BVDom (1), CUDom (1), CVDom (1) = 20
-float ObjectDB[200][10000][20];
+float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
+int noObjects;
+int noTriangles[MAX_OBJECTS];
 
 // Prototypes
 void datainterrupt(int, int, int, int);
