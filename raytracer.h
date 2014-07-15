@@ -59,3 +59,9 @@
 #define TriangleBVDom           17
 #define TriangleCUDom           18
 #define TriangleCDDom           19
+
+// Light vector
+#define LightVector             0
+#define LightColour             3
+#define LightShadowFactor       6
+#define LightGlobalFlag         7

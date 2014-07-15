@@ -32,6 +32,11 @@ float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
 int noObjects;
 int noTriangles[MAX_OBJECTS];
 
+// Lights have several parameters:
+// Holds: Position/Direction (3), Colour (3), shadowfactor (1), Position/Distance flag (1) = 8
+float Light[8];
+
+
 // Prototypes
 void datainterrupt(int, int, int, int);
 void RayTrace(void);
