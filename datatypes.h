@@ -191,7 +191,7 @@ void vecNormalised(float u[3])
         ResultStore[1] = u[1];
         ResultStore[2] = u[2];
     }
-    else // Below function calls will populate ResultsStore
+    else // Below function calls will populate ResultStore
         if (tempVar == 1)
             scalarVecMult(0x1000000, u); // Equivalent of 256 as 1 / sqrt(1.52E-5) is 256
         else

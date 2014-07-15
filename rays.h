@@ -2,6 +2,8 @@
 float triangleIntersection(float ray[6], int triangleIdx, float currentDistance);
 void objectIntersection(float ray[6], int objectIdx);
 float traceShadow(float localHitData[18], float direction[3]);
+void reflectRay(float localHitData[18]);
+void refractRay(float localHitData[18], float inverserefreactivity, float squareinverserefractivity);
 
 // Modulo vector:
 int DomMod[5] = {0, 1, 2, 0, 1};
@@ -276,4 +278,82 @@ float traceShadow(float localHitData[18], float direction[3])
     return 0;
 }
 
+void reflectRay(float localHitData[18])
+{
+    float direction[3], normal[3];
+    int i;
+    
+    // Populate the direction vector:
+    for (i = 0; i < 3; i += 1)
+    {
+        direction[i] = localHitData[HitDataRayDirection + i];
+        normal[i] = localHitData[HitDataHitNormal + i];
+    }
+    
+    // Based on 2 (n . v) * n - v
+    negVec(direction);
+    
+    // Copy the result back to the direction
+    for (i = 0; i < 3; i += 1)
+        direction[i] = ResultStore[i];
+    
+    scalarVecMult(dot(normal, direction) << 1, normal);
+    
+    for (i = 0; i < 3; i += 1)
+    {
+        // Move the reflection direction:
+        ResultStore[3 + i] = ResultStore[i];
+        // Then add the reflection source:
+        ResultStore[i] = localHitData[HitDataHitLocation + i];
+    }
+}
+
+void refractRay(float localHitData[18], float inverserefreactivity, float squareinverserefractivity)
+{
+    float direction[3], normal[3], c;
+    int i;
+    
+    // Populate the direction and normal vectors:
+    for (i = 0; i < 3; i += 1)
+    {
+        direction[i] = localHitData[HitDataRayDirection + i];
+        normal[i] = localHitData[HitDataHitNormal + i];
+    }
+    
+    // Compute the negative vector:
+    negVec(direction);
+    
+    // Copy the result back to the direction
+    for (i = 0; i < 3; i += 1)
+        direction[i] = ResultStore[i];
+    
+    c = dot(direction, normal);
+    c = (inverserefreactivity * c) - fp_sqrt(1 - (squareinverserefractivity * (1 - c * c)));
+    
+    // Direction of refractive ray:
+    scalarVecMult(inverserefreactivity, direction);
+    
+    // Copy the result back to the direction
+    for (i = 0; i < 3; i += 1)
+        direction[i] = ResultStore[i];
+    // Then scale the normal
+    scalarVecMult(c, normal);
+    // And copy the result back
+    for (i = 0; i < 3; i += 1)
+        normal[i] = ResultStore[i];
+    // Subtract the two vectors
+    vecSub(normal, direction);
+    // Copy the result back
+    for (i = 0; i < 3; i += 1)
+        normal[i] = ResultStore[i];
+    // Then normalise.
+    vecNormalised(normal);
+    // Next, create a ray array in the result store.
+    for (i = 0; i < 3; i += 1)
+    {
+        // Shift the direction up
+        ResultStore[i + 3] = ResultStore[i];
+        // Then add the refraction start location
+        ResultStore[i] = localHitData[HitDataHitLocation + i];
+    }
 }
