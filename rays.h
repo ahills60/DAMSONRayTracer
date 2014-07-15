@@ -1,6 +1,7 @@
-
+// Prototypes:
 float triangleIntersection(float ray[6], int triangleIdx, float currentDistance);
 void objectIntersection(float ray[6], int objectIdx);
+float traceShadow(float localHitData[18], float direction[3]);
 
 // Modulo vector:
 int DomMod[5] = {0, 1, 2, 0, 1};
@@ -11,7 +12,7 @@ extern float HitData[18];
 extern float ResultStore[16];
 extern int noObjects;
 extern int noTriangles[MAX_OBJECTS];
-
+extern float Light[8];
 
 
 
@@ -241,4 +242,38 @@ void objectIntersection(float ray[6], int objectIdx)
     }
     else
         HitData[HitDataObjectIndex] = -1;
+}
+
+float traceShadow(float localHitData[18], float direction[3])
+{
+    float ray[6];
+    
+    int n, m;
+    float tempDist = 0x7FFFFFFF;
+    
+    // Populate the ray vector
+    for (n = 0; n < 6; n += 1)
+    {
+        ray[n] = localHitData[HitDataHitLocation + n];
+        ray[RayDirectionx + n] = direction[n];
+    }
+    
+    // Now send the shadow ray back to the light. If it intersects, then the ray is a shadow
+    for (m = 0; m < noObjects; m += 1)
+    {
+        for (n = 0; n < noTriangles[m]; n += 1)
+        {
+            // Ensure there are no self-intersections
+            if (m == localHitData[HitDataObjectIndex] && n == localHitData[HitDataTriangleIndex])
+                continue;
+            
+            if (triangleIntersection(ray, m, n, tempDist) > (EPS << 1))
+                return Light[LightShadowFactor];
+        }
+    }
+    
+    // If here, no objects obscured the light source, so return 0.
+    return 0;
+}
+
 }
