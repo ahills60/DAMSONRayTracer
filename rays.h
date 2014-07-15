@@ -246,6 +246,30 @@ void objectIntersection(float ray[6], int objectIdx)
         HitData[HitDataObjectIndex] = -1;
 }
 
+void sceneIntersection(float ray[6])
+{
+    int n, i;
+    float nearestHit[18];
+    
+    nearestHit[HitDataDistance] = 0x7FFFFFFF;
+    
+    for (n = 0; n < noObjects; n += 1)
+    {
+        objectIntersection(ray, n);
+        // Check to see if this hit is worth keeping. If so, take a copy
+        if (HitData[HitDataDistance] > 0 && HitDataDistance[HitDataDistance] < nearestHit[HitDataDistance])
+            for (i = 0; i < 18; i += 1)
+                nearestHit[i] = HitData[i];
+    }
+    
+    // Now check to see if there actually was a hit:
+    if (nearestHit[HitDataDistance] <= 0 || nearestHit[HitDataDistance] >= 0x7FFFFFFF)
+        nearestHit[HitDataObjectIndex] = -1;
+    // Finally copy the contents of the nearest hit vector to the hit data vector.
+    for (n = 0; n < 18; n += 1)
+        HitData[n] = nearestHit[n];
+}
+
 float traceShadow(float localHitData[18], float direction[3])
 {
     float ray[6];
