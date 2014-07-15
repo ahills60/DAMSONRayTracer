@@ -15,7 +15,6 @@ void specular(float lightDirection[3], float textureColour[3]);
 
 #include "rays.h"
 
-extern float HitData[18];
 extern float RGBChannels[3];
 extern float ResultStore[4][4];
 extern float Light[8];
@@ -110,22 +109,20 @@ void diffusion(float localHitData[18], float lightDirection[3], float textureCol
 void specular(float localHitData[18], float lightDirection[3], float textureColour[3])
 {
     int i;
-    float vector[3], ray[6], dotproduct;
+    float vector[3], dotproduct;
     
     if (MaterialDB[localHitData[HitDataObjectIndex]][MaterialSpecular] > 0)
     {
         // Reflective ray:
         reflectRay(localHitData);
-        for (i = 0; i < 6; i += 1)
-            ray[i] = ResultStore[i];
         for (i = 0; i < 3; i += 1)
-            vector[i] = ray[RayDirectionx + i];
+            vector[i] = ResultStore[RayDirectionx + i];
         
         dotProduct = dot(lightDirection, vector);
-    
+        
         if (dotProduct < 0)
             return;
-    
+        
         float distance = fp_pow(dotProduct, MaterialDB[localHitData[HitDataObjectIndex]][MaterialShininess]) * MaterialDB[localHitData[HitDataObjectIndex]][MaterialSpecular]);
             
         // Has a texture been defined?
