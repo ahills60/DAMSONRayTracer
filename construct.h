@@ -24,13 +24,20 @@
 
 Texture *Textures;
 extern char *inputFile;
-extern int GlobalLightingFlag;
+
+extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
+extern float HitData[18];
+extern float ResultStore[16];
+extern int noObjects;
+extern int noTriangles[MAX_OBJECTS];
+extern float Light[8];
+extern float MaterialDB[MAX_OBJECTS][19];
 
 float RGBChannels[3];
 void ReadByteFile();
 void populateDefaultScene();
 void populateScene();
-void draw();
+void draw(float ray[6], int recursion);
 
 /* Function to read the byte file */
 void ReadByteFile(Scene *scene, Light lightSrc, MathStat *m, FuncStat *f)
@@ -385,76 +392,194 @@ void populateScene(Scene *scene, Light lightSrc, MathStat *m, FuncStat *f)
 }
 
 /* And then the standard draw function that's been previously constructed */
-Vector draw(Ray ray, Scene scene, Light light, int recursion)
+void draw(float ray[6], int recursion)
 {
-    Hit hit;
     float outputColour[3], reflectiveColour[3], refractiveColour[3], textureColour[3];
-    VectorAlpha ColourAlpha;
+    float vector[3], hitLocation[3], localHitData[18];
+    float colour[3], alpha;
     fixedp reflection, refraction;
-    Ray newRay;
+    float newRay[6], source[3];
+    int i;
     
     // Default is black. We can add to this (if there's a hit) 
     // or just return it (if there's no object)
-    outputColour = {0, 0, 0};
+    for (i = 0; i < 3; i += 1)
+        outputColour[i] = 0;
     
-    hit = sceneIntersection(ray, scene);
+    // Check for an intersection. Results are stored in the hit data array
+    sceneIntersection(ray);
     
     // Determine whether there was a hit. Otherwise default.
-    if (hit.objectIndex >= 0)
+    if (HitData[HitDataObjectIndex] >= 0)
     {
         // There was a hit.
-        Vector lightDirection = GlobalLightingFlag ? light.direction : vecNormalised(vecSub(light.location, hit.location));
         
-        // Determine whether this has a texture or not
-        if (scene.object[hit.objectIndex].material.textureIdx < 0)
-            textureColour = {-1, -1, -1};
+        // The first thing to do is to take a copy of the local hit data. This is necessary as the
+        // draw function can be called (as a child) prior to completion of the (parent) draw function.
+        for (i = 0; i < 18; i += 1)
+            localHitData[i] = HitData[i];
+        
+        // Determine whether the light vector describes the direction or the position:
+        if (Light[LightGlobalFlag])
+            for (i = 0; i < 3; i +=1)
+                lightDirection[i] = Light[LightVector + i];
         else
         {
-            ColourAlpha = getColour(Textures[scene.object[hit.objectIndex].material.textureIdx], scene, hit);
+            // Populate the light direction from the light location
+            for (i = 0; i < 3; i += 1)
+            {
+                vector[i] = Light[LightVector + i];
+                hitLocation[i] = localHitData[HitDataHitLocation + i];
+            }
+            // Subtract the light location and the hit position:
+            vecSub(vector, hitLocation);
+            // Take the evaluated subtraction from the result store
+            for (i = 0; i < 3; i += 1)
+                vector[i] = ResultStore[i];
+            // Then normalise the resultant vector which will be the light direction
+            vecNormalised(vector);
+            // Copy the result from the result store
+            for (i = 0; i < 3; i += 1)
+                lightDirection[i] = ResultStore[i];
+        }
+        
+        // Determine whether this has a texture or not
+        if (MaterialDB[localHitData[HitDataObjectIndex]][MaterialTextureIndex] < 0)
+            for (i = 0; i < 3; i += 1)
+                textureColour[i] = -1;
+        else
+        {
+            // The getColour function doesn't need anything but the hit data to be passed to it.
+            // It can determine which texture to use via the material DB (which uses the object
+            // index).
+            getColour(localHitData);
+            // This function returns the RGBA value. This is held in the result store:
+            for (i = 0; i < 3; i += 1)
+                colour[i] = ResultStore[i];
+            alpha = ResultStore[3];
             
             // Check to see if we need to create a new ray from this point:
-            if (ColourAlpha.alpha < fp_fp1 && recursion >= 0)
+            if (alpha < 1 && recursion >= 0)
             {
                 // Yes, the alpha channel is < 1, so create a new ray starting from the point of intersection.
                 // This ray has the same direction but a different source (the point of intersection).
-                newRay.direction = ray.direction;
+                for (i = 0; i < 3; i += 1)
+                {
+                    newRay[RayDirectionx + i] = ray[RayDirectionx + i];
+                    // At the same time, extract the ray direction:
+                    vector[i] = ray[RayDirectionx + i];
+                    source[i] = ray[i];
+                }
+                
                 // Recompute the source by adding a little extra to the distance.
-                newRay.source = vecAdd(ray.source, scalarVecMult(hit.distance + 0x80, ray.direction)); // hit.location;
+                // Compute the total distance first:
+                scalarVecMult(localHitData[HitDataDistance] + 0x80, vector);
+                // Extract the results from the result store:
+                for (i = 0; i < 3; i += 1)
+                    vector[i] = ResultStore[i];
+                // Now add the two vectors together:
+                vecAdd(vector, source);
+                // Then set this as the new ray's source:
+                for (i = 0; i < 3; i += 1)
+                    newRay[i] = ResultStore[i];
+                
                 // Next, emit a ray. Don't reduce the recursion count.
-                textureColour = vecAdd(scalarVecMult(ColourAlpha.alpha, ColourAlpha.vector), scalarVecMult(1 - ColourAlpha.alpha, draw(newRay, scene, light, recursion)));
+                draw(newRay, recursion);
+                
+                // The resultant RGB value should be extracted:
+                for (i = 0; i < 3; i += 1)
+                    textureColour[i] = ResultStore[i];
+                // Scale based on the alpha value:
+                scalarVecMult(1 - alpha, textureColour);
+                // And extract the result:
+                for (i = 0; i < 3; i += 1)
+                    textureColour[i] = ResultStore[i];
+                
+                // Next, take the colour and previous alpha value and compute the product:
+                scalarVecMult(alpha, colour);
+                for (i = 0; i < 3; i += 1)
+                    vector[i] = ResultStore[i];
+                // Add the two components together:
+                vecAdd(vector, textureColour);
+                // Then this is the texture colour:
+                for (i = 0; i < 3; i += 1)
+                    textureColour[i] = ResultStore[i];
             }
             else
-                textureColour = ColourAlpha.vector;
+                for (i = 0; i < 3; i += 1)
+                    textureColour[i] = colour[i];
         }
-            
-
-        // outputColour = vecAdd(ambiance(hit, scene, light, m, f), diffusion(hit, scene, light, m, f), m, f);
-        outputColour = vecAdd(ambiance(hit, scene, light, textureColour, m, f), vecAdd(diffusion(hit, scene, light, lightDirection, textureColour, m, f), specular(hit, scene, light, lightDirection, textureColour, m, f), m, f), m, f);
+        // Now compute the individual lighting effects and add the components together.
+        // These are stored in the RGB components vector
+        ambiance(localHitData, textureColour);
+        diffusion(localHitData, lightDirection, textureColour);
+        specular(localHitData, lightDirection, textureColour);
+        
+        // Extract the colours into a local variable.
+        for (i = 0; i < 3; i += 1)
+            outputColour[i] = RGBChannels[i];
+        
         
         // Should we go deeper?
         if (recursion > 0)
         {
             // Yes, we should
             // Get the reflection
-            reflectiveColour = draw(reflectRay(hit, m, f), scene, light, recursion - 1, m, f);
-            DEBUG_statSubtractInt(m, 1);
-            reflection = scene.object[hit.objectIndex].material.reflectivity;
-            outputColour = vecAdd(outputColour, scalarVecMult(reflection, reflectiveColour, m, f), m, f);
+            // Create the new reflected ray:
+            reflectRay(localHitData);
+            // And then extract the result:
+            for (i = 0; i < 6; i += 1)
+                newRay[i] = ResultStore[i];
+            // Call the draw function
+            draw(newRay, recursion - 1);
+            // And extract the result from result store:
+            for (i = 0; i < 3; i += 1)
+                reflectiveColour[i] = ResultStore[i];
             
-            // Get the refraction
-            refractiveColour = draw(refractRay(hit, scene.object[hit.objectIndex].material.inverserefractivity, scene.object[hit.objectIndex].material.squareinverserefractivity, m, f), scene, light, recursion - 1, m, f);
-            DEBUG_statSubtractInt(m, 1);
-            refraction = scene.object[hit.objectIndex].material.opacity;
-            outputColour = vecAdd(outputColour, scalarVecMult(refraction, refractiveColour, m, f), m, f);
+            reflection = MaterialDB[localHitData[HitDataObjectIndex]][MaterialReflectivity];
+            
+            scalarVecMult(reflection, reflectiveColour);
+            // Extract this result:
+            for (i = 0; i < 3; i += 1)
+                vector[i] = ResultStore[i];
+            vecAdd(outputColour, vector);
+            // Extract this result
+            for (i = 0; i < 3; i += 1)
+                outputColour[i] = ResultStore[i];
+            
+            // Get the refraction in a similar way:
+            refractRay(localHitData MaterialDB[localHitData[HitDataObjectIndex]][MaterialInverseRefractivity], MaterialDB[localHitData[HitDataObjectIndex]][MaterialSquareInverseRefractivity]);
+            // And then extract the result:
+            for (i = 0; i < 6; i += 1)
+                newRay[i] = ResultStore[i];
+            // Call the draw function
+            draw(newRay, recursion - 1);
+            // Populate the refractiveColour vector:
+            for (i = 0; i < 3; i += 1)
+                refractiveColour[i] = ResultStore[i];
+            
+            // Extract the material's opacity:
+            refraction = MaterialDB[localHitData[HitDataObjectIndex]][MaterialOpacity];
+            // Compute the scaled refractive colour element:
+            scalarVecMult(refraction, refractiveColour);
+            // Extract the result from the result store:
+            for (i = 0; i < 3; i += 1)
+                vector[i] = ResultStore[i];
+            vecAdd(outputColour, vector);
+            
+            // Before finally saving this as the output colour:
+            for (i = 0; i < 3; i += 1)
+                outputColour[i] = ResultStore[i];
         }
         
-        // We've got what we needed after the hit, so return
-        DEBUG_statSubtractFlt(m, 1);
         // printf("Hit at: %f, %f, %f\nRay Direction: %f, %f, %f\nLight direction: %f, %f, %f\n", fp_FP2Flt(hit.location.x), fp_FP2Flt(hit.location.y), fp_FP2Flt(hit.location.z), fp_FP2Flt(ray.direction.x), fp_FP2Flt(ray.direction.y), fp_FP2Flt(ray.direction.z), fp_FP2Flt(lightDirection.x), fp_FP2Flt(lightDirection.y), fp_FP2Flt(lightDirection.z));
-        return scalarVecMult(fp_fp1 - traceShadow(hit, scene, light, lightDirection, m, f), outputColour, m, f);
+        scalarVecMult(1 - traceShadow(localHitData, lightDirection), outputColour);
+        // The result is saved to the result store.
+        return;
     }
     
     // No hit, return black.
     
-    return outputColour;
+    for (i = 0; i < 3; i += 1)
+        ResultStore[i] = outputColour[i];
 }
