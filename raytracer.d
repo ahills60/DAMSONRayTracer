@@ -31,6 +31,9 @@ float HitData[18];
 float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
 int noObjects;
 int noTriangles[MAX_OBJECTS];
+// Likewise, do the same for a materials databse:
+// Holds: colour (3), reflectivity (1), opacity (1), refractivity (1), inverserefractivity (1), squareinverserefractivity (1), ambiance (1), diffusive (1), specular (1), shininess (1), matLightColour (3), compAmbianceColour (3), textureIdx (1) = 19
+float MaterialDB[MAX_OBJECTS][19];
 
 // Lights have several parameters:
 // Holds: Position/Direction (3), Colour (3), shadowfactor (1), Position/Distance flag (1) = 8
