@@ -39,6 +39,12 @@ float MaterialDB[MAX_OBJECTS][19];
 // Holds: Position/Direction (3), Colour (3), shadowfactor (1), Position/Distance flag (1) = 8
 float Light[8];
 
+// Textures database
+// Holds: width (1), height (1), alpha bool (1), position in memory (1) = 4
+int TextureDB[MAX_TEXTURES][4];
+
+// Variable to denote transparencies should be rendered
+int RenderTransparencies = 0;
 
 // Prototypes
 void datainterrupt(int, int, int, int);

@@ -17,6 +17,7 @@
 
 #define MAX_OBJECTS                             200
 #define MAX_TRIANGLES                           10000
+#define MAX_TEXTURES                            100
 
 // Rays are in form: source (3), direction (3).
 #define RaySourcex                              0
@@ -80,3 +81,9 @@
 #define MaterialLightColour                     12
 #define MaterialCompAmbianceColour              15
 #define MaterialTextureIndex                    18
+
+// Texture vector
+#define TextureWidth                            0
+#define TextureHeight                           1
+#define TextureAlpha                            2
+#define TextureMemStart                         3
