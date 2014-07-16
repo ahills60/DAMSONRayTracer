@@ -520,27 +520,25 @@ void setPrecompTriangle(Triangle *triangle, Vector u, Vector v, Vector w, UVCoor
 }
 
 /* Multiple a UV coordinate by a scalar value */
-UVCoord scalarUVMult(fixedp a, UVCoord u, MathStat *m)
+void scalarUVMult(float a, float u[2], MathStat *m)
 {
-    UVCoord r;
-    setUVCoord(&r, fp_mult(a, u.U), fp_mult(a, u.V));
-    DEBUG_statMultiplyFlt(m, 2);
-    return r;
+    int i;
+    
+    for (i = 0; i < 2; i += 1)
+        ResultStore[i] = a * u[i];
 }
 
 /* Add two UV coordinates */
-UVCoord uvAdd(UVCoord a, UVCoord b, MathStat *m)
+void uvAdd(float a[2], float b[2], MathStat *m)
 {
-    UVCoord r;
-    setUVCoord(&r, a.U + b.U, a.V + b.V);
-    DEBUG_statPlusFlt(m, 2);
-    return r;
+    int i;
+    for (i = 0; i < 2; i += 1)
+        ResultStore[i] = a[i] + b[i];
 }
 
-UVCoord uvSub(UVCoord a, UVCoord b, MathStat *m)
+void uvSub(float a[2], float b[2], MathStat *m)
 {
-    UVCoord r;
-    setUVCoord(&r, a.U - b.U, a.V - b.V);
-    DEBUG_statSubtractFlt(m, 2);
-    return r;
+    int i;
+    for (i = 0; i < 2; i += 1)
+        ResultStore = a[i] - b[i];
 }
