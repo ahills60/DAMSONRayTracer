@@ -93,30 +93,24 @@ void getColour(float localHitData[18])
     for (i = 0; i < 2; i += 1)
     {
         uv1[i] = ObjectDB[localHitData[HitDataObjectIndex]][localHitData[HitDataTriangleIndex]][TriangleAu + i];
-        uv2[i] = ObjectDB[localHitData[HitDataObjectIndex]][localHitData[HitDataTriangleIndex]][TriangleBu + i];
-        uv3[i] = ObjectDB[localHitData[HitDataObjectIndex]][localHitData[HitDataTriangleIndex]][TriangleCu + i];
+        uv2[i] = ObjectDB[localHitData[HitDataObjectIndex]][localHitData[HitDataTriangleIndex]][TriangleBu + i] - uv1[i];
+        uv3[i] = ObjectDB[localHitData[HitDataObjectIndex]][localHitData[HitDataTriangleIndex]][TriangleCu + i] - uv1[i];
     }
     // V - U
-    uv2[0] -= uv1[0];
-    uv2[1] -= uv1[1];
-    // Now scale with Mu
+    // Scale with Mu
     scalarUVMult(localHitData[HitDataMu], uv2);
     // Extract the results
     uv2[0] = ResultStore[0];
     uv2[1] = ResultStore[1];
     
     // W - U
-    uv3[0] -= uv1[0];
-    uv3[1] -= uv1[1];
-    // Now scale with Mv
+    // Scale with Mv
     scalarUVMult(localHitData[HitDataMv], uv3);
-    // Extract the results:
-    uv3[0] = ResultStore[0];
-    uv3[1] = ResultStore[1];
+    // Contents of UV3 in results store. Let's just extract it from there.
     
     // Then add UV1, UV2 and UV3:
-    uv1[0] += uv2[0] + uv3[0];
-    uv1[1] += uv2[1] + uv3[1];
+    uv1[0] += uv2[0] + ResultStore[0];
+    uv1[1] += uv2[1] + ResultStore[1];
     
     getTexel(localHitData, uv1);
     // This should return the results within the results store.
