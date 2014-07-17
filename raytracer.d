@@ -46,6 +46,9 @@ int TextureDB[MAX_TEXTURES][4];
 // Variable to denote transparencies should be rendered
 int RenderTransparencies = 0;
 
+// Modulo vector:
+int DomMod[5] = {0, 1, 2, 0, 1};
+
 // Prototypes
 void datainterrupt(int, int, int, int);
 void RayTrace(void);

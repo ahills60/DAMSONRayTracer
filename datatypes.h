@@ -13,6 +13,8 @@
 #define EPS        0x6 // 512 // 6 // 31 // Was 0.00001
 
 extern int ResultStore[16];
+// Modulo vector:
+extern int DomMod[5];
 
 /*
 // UV coordinate structure

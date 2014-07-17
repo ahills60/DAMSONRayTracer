@@ -6,7 +6,7 @@ void reflectRay(float localHitData[18]);
 void refractRay(float localHitData[18], float inverserefreactivity, float squareinverserefractivity);
 
 // Modulo vector:
-int DomMod[5] = {0, 1, 2, 0, 1};
+external int DomMod[5];
 
 // External objects
 extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
