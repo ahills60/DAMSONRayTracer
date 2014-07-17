@@ -102,5 +102,3 @@ void createPlaneXZ(int objectIndex, float size)
        setTriangle(objectIndex, noTriangles[objectIndex], u, v, w);
    }
 }
-
-
