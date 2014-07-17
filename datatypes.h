@@ -13,6 +13,9 @@
 #define EPS        0x6 // 512 // 6 // 31 // Was 0.00001
 
 extern int ResultStore[16];
+extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
+extern int noObjects;
+extern int noTriangles[MAX_OBJECTS];
 // Modulo vector:
 extern int DomMod[5];
 
@@ -347,53 +350,67 @@ void genScaleMatrix(float sx, float sy, float sz)
         ResultStore[i] = m[i];
 }
 
-void setTriangle(Triangle *triangle, Vector u, Vector v, Vector w, MathStat *m, FuncStat *f)
+void setTriangle(int objectIndex, int triangleIndex, float u[3], float v[3], float w[3])
 {
-    int uIdx, vIdx;
-    fixedp dk, du, dv, bu, bv, cu, cv, coeff;
-
-#ifdef DEBUG
-    (*f).setTriangle++;
-#endif
-    (*triangle).u = u;
-    (*triangle).v = v;
-    (*triangle).w = w;
-    (*triangle).vmu = vecSub(v, u, m, f);
-    (*triangle).wmu = vecSub(w, u, m, f);
-    (*triangle).NormDom = cross((*triangle).vmu, (*triangle).wmu, m, f);
-    (*triangle).normcrvmuwmu = vecNormalised((*triangle).NormDom, m, f);
-    UVCoord tempCoord;
-    setUVCoord(&tempCoord, -1, -1);
-    (*triangle).uUV = tempCoord;
-    (*triangle).vUV = tempCoord;
-    (*triangle).wUV = tempCoord;
+    int uIdx, vIdx, i;
+    float dk, du, dv, bu, bv, cu, cv, coeff;
+    float vmu[3], wmu[3], NormDom[3] fabsNormDom[3];
     
-    if (fp_fabs((*triangle).NormDom.x) > fp_fabs((*triangle).NormDom.y))
+    for (i = 0; i < 3; i += 1)
     {
-        if (fp_fabs((*triangle).NormDom.x) > fp_fabs((*triangle).NormDom.z))
-            (*triangle).DominantAxisIdx = 0;
+        ObjectDB[objectIndex][triangleIndex][TriangleAx + i] = u[i];
+        vmu[i] = v[i] - u[i];
+        wmu[i] = w[i] - u[i];
+    }
+    
+    cross(vmu, wmu);
+    for (i = 0; i < 3; i += 1)
+        NormDom[i] = ResultStore[i];
+    
+    vecNormalised(NormDom);
+    for (i = 0; i < 3; i += 1)
+    {
+        ObjectDB[objectIndex][triangleIndex][Trianglenormcrvmuwmux + i] = ResultStore[i];
+        // Precompute fabs whilst we're at it.
+        fabsNormDom[i] = fp_fabs(NormDom[i]);
+    }
+    
+    // Invalidate UV coordinates
+    for (i = 0; i < 2; i += 1)
+    {
+        ObjectDB[objectIndex][triangleIndex][TriangleAu + i] = -1;
+        ObjectDB[objectIndex][triangleIndex][TriangleBu + i] = -1;
+        ObjectDB[objectIndex][triangleIndex][TriangleCu + i] = -1;
+    }
+    
+    // Find the dominant axis
+    if (fabsNormDom[0] > fabsNormDom[1])
+    {
+        if (fabsNormDom[0] > fabsNormDom[2])
+            ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] = 0;
         else
-            (*triangle).DominantAxisIdx = 2;
+            ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] = 2;
     }
     else
     {
-        if (fp_fabs((*triangle).NormDom.y) > fp_fabs((*triangle).NormDom.z))
-            (*triangle).DominantAxisIdx = 1;
+        if (fabsNormDom[1] > fabsNormDom[2]))
+            ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] = 1;
         else
-            (*triangle).DominantAxisIdx = 2;
+            ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] = 2;
     }
-    uIdx = ((*triangle).DominantAxisIdx + 1) % 3;
-    vIdx = ((*triangle).DominantAxisIdx + 2) % 3;
+    // Use the array to quickly resolve modulo.
+    uIdx = DomMod[ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] + 1];
+    vIdx = DomMod[ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] + 2];
     
     // This should make calculations easier...
-    dk = ((*triangle).DominantAxisIdx == 1) ? (*triangle).NormDom.y : (((*triangle).DominantAxisIdx == 2) ? (*triangle).NormDom.z : (*triangle).NormDom.x);
-    du = (uIdx == 1) ? (*triangle).NormDom.y : ((uIdx == 2) ? (*triangle).NormDom.z : (*triangle).NormDom.x);
-    dv = (vIdx == 1) ? (*triangle).NormDom.y : ((vIdx == 2) ? (*triangle).NormDom.z : (*triangle).NormDom.x);
+    dk = (ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] == 1) ? NormDom[1] : ((ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx]== 2) ? NormDom[2] : NormDom[0]);
+    du = (uIdx == 1) ? NormDom[1] : ((uIdx == 2) ? NormDom[2] : NormDom[0]);
+    dv = (vIdx == 1) ? NormDom[1] : ((vIdx == 2) ? NormDom[2] : NormDom[0]);
     
-    bu = (uIdx == 1) ? (*triangle).wmu.y : ((uIdx == 2) ? (*triangle).wmu.z : (*triangle).wmu.x);
-    bv = (vIdx == 1) ? (*triangle).wmu.y : ((vIdx == 2) ? (*triangle).wmu.z : (*triangle).wmu.x);
-    cu = (uIdx == 1) ? (*triangle).vmu.y : ((uIdx == 2) ? (*triangle).vmu.z : (*triangle).vmu.x);
-    cv = (vIdx == 1) ? (*triangle).vmu.y : ((vIdx == 2) ? (*triangle).vmu.z : (*triangle).vmu.x);
+    bu = (uIdx == 1) ? wmu[1] : ((uIdx == 2) ? wmu[2] : wmu[0]);
+    bv = (vIdx == 1) ? wmu[1] : ((vIdx == 2) ? wmu[2] : wmu[0]);
+    cu = (uIdx == 1) ? vmu[1] : ((uIdx == 2) ? vmu[2] : vmu[0]);
+    cv = (vIdx == 1) ? vmu[1] : ((vIdx == 2) ? vmu[2] : vmu[0]);
     
     /*
     if (dk == 0)
@@ -408,19 +425,23 @@ void setTriangle(Triangle *triangle, Vector u, Vector v, Vector w, MathStat *m, 
     }
     */
     // Now precompute components for Barycentric intersection
-    dk = (dk == 0) ? fp_fp1 : dk;
-    (*triangle).NUDom = fp_div(du, dk);
-    (*triangle).NVDom = fp_div(dv, dk);
-    (*triangle).NDDom = fp_div(dot((*triangle).NormDom, u, m, f) , dk);
+    dk = (dk == 0) ? 1 : dk;
+    ObjectDB[objectIndex][triangleIndex][TriangleNUDom] = du / dk;
+    ObjectDB[objectIndex][triangleIndex][TriangleNVDom] = dv / dk;
+    ObjectDB[objectIndex][triangleIndex][TriangleNDDom] = dot(NormDom, u) / dk;
     
     // First line of the equation:
-    coeff = fp_mult(bu, cv) - fp_mult(bv, cu);
-    coeff = (coeff == 0) ? fp_fp1 : coeff;
-    (*triangle).BUDom = fp_div(bu, coeff);
-    (*triangle).BVDom = -fp_div(bv, coeff);
+    coeff = (bu * cv) - (bv * cu);
+    coeff = (coeff == 0) ? 1 : coeff;
+    ObjectDB[objectIndex][triangleIndex][TriangleBUDom] = bu / coeff;
+    ObjectDB[objectIndex][triangleIndex][TriangleBVDom] = -(bv / coeff);
     // Second line of the equation:
-    (*triangle).CUDom = fp_div(cv, coeff);
-    (*triangle).CVDom = -fp_div(cu, coeff);
+    ObjectDB[objectIndex][triangleIndex][TriangleCUDom] = cv / coeff;
+    ObjectDB[objectIndex][triangleIndex][TriangleCVDom] = -(cu / coeff);
+    
+    // Finally, increment the number of triangles statistic.
+    noTriangles[objectIndex] += 1;
+    
 }
 
 void setUVTriangle(Triangle *triangle, Vector u, Vector v, Vector w, UVCoord uUV, UVCoord vUV, UVCoord wUV, MathStat *m, FuncStat *f)
