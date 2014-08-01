@@ -9,18 +9,6 @@
 #define FP_2PI      6.283185307      // 2 * pi
 #define FP_PI_2     1.570796327      // pi / 2
 
-int LOOKUP_LOG1[31] = {
-    2017, 3973, 5873, 7719, 9515, 11262, 12965, 14624, 16242, 17821, 19364, 
-    20870, 22343, 23783, 25193, 26573, 27924, 29248, 30546, 31818, -32469, 
-    -31244, -30042, -28861, -27701, -26561, -25441, -24340, -23256, -22191, 
-    -21142
-};
-int LOOKUP_LOG2[31] = {
-    64, 128, 192, 256, 319, 383, 446, 510, 573, 637, 700, 764, 827, 890, 
-    953, 1016, 1079, 1142, 1205, 1268, 1330, 1393, 1456, 1518, 1581, 1643, 
-    1706, 1768, 1830, 1892, 1955
-};
-
 float fp_sin(float x);
 float fp_cos(float x);
 float fp_log(float a);
@@ -176,84 +164,80 @@ float exp(float z)
 
 float fp_log(float a)
 {
-    int im, j2, j1, j3, p = -16;
-    int i = bitset(a), ab = bitset(a);
-    int k;
-    float output;
+    int t,y, x = bitset(a);
+    
     if (a <= 0)
-        return MIN_VAL;
-    
-    // Get the MSB position
-    
-    if (i & 0xFFFF0000)
+        return bitset(MIN_VAL);
+
+    y = 0xa65af;
+    if(x < 0x00008000)
     {
-        i = i >> 16;
-        p += 16;
+        x <<= 16;
+        y -= 0xb1721;
     }
-    if (i & 0x0000FF00)
+    if(x < 0x00800000)
+    { 
+        x <<= 8;
+        y -= 0x58b91;
+    }
+    if(x < 0x08000000)
     {
-        i = i >> 8;
-        p += 8;
+        x <<= 4;
+        y -= 0x2c5c8;
     }
-    if (i & 0x000000F0)
+    if(x < 0x20000000)
     {
-        i = i >> 4;
-        p += 4;
+        x <<= 2;
+        y -= 0x162e4;
     }
-    if (i & 0x0000000C)
+    if(x < 0x40000000)
     {
-        i = i >> 2;
-        p += 2;
+        x <<= 1;
+        y -= 0x0b172;
     }
-    if (i & 0x00000002)
+    t = x + (x >> 1);
+    if((t & 0x80000000) == 0) 
     {
-        i = i >> 1;
-        p += 1;
+        x = t;
+        y -= 0x067cd;
     }
-    
-    // Create a log based on MSB position
-    k = p * 45426;
-    
-    // Create 3 parts of the 15 bits after MSB
-    if (p >= 0)
+    t = x + (x >> 2);
+    if((t & 0x80000000) == 0)
     {
-        j3 = ab >> (p + 1);
+        x = t;
+        y -= 0x03920;
     }
-    else
+    t = x + (x >> 3);
+    if((t & 0x80000000) == 0)
     {
-        j3 = ab << (-1 - p);
+        x = t;
+        y -= 0x01e27;
     }
-    j2 = j3 >> 5;
-    j1 = j2 >> 5;
-    
-    // Use bits MSB + 1 to MSB + 5
-    im = (j1 & 31) - 1;
-    if (im >= 0)
+    t = x + (x >> 4);
+    if((t & 0x80000000) == 0)
     {
-        k += LOOKUP_LOG1[im] & 0xFFFF;
+        x = t;
+        y -= 0x00f85;
     }
-    
-    // Use bits MSB + 6 to MSB + 10
-    im = (j3 & 0x03E0);
-    if (im >= j1)
+    t = x + (x >> 5); 
+    if((t & 0x80000000) == 0)
     {
-        im = im / j1;
-        k += LOOKUP_LOG2[im - 1] & 0xFFFF;
-        im = im * j1;
+        x = t;
+        y -= 0x007e1;
     }
-    else
+    t = x + (x >> 6); 
+    if((t & 0x80000000) == 0) 
     {
-        im = 0;
+        x = t;
+        y -= 0x003f8;
     }
-    // Finally use bits MSB + 11 to MSB + 16
-    im = ((j3 & 0x3FF) - im) << 12;
-    if (im >= j2)
-    {
-        i = im / j2;
-        k += (i + 1) >> 1;
-    }
-    
-    output = bitset(k);
-    
-    return output;
+    t = x + (x >> 7);
+    if((t & 0x80000000) == 0)
+     {
+         x = t;
+         y -= 0x001fe;
+     }
+    x = 0x80000000 - x;
+    y -= x >> 15;
+    return bitset(y);
 }
