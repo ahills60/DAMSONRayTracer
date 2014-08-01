@@ -176,13 +176,14 @@ float exp(float z)
 
 float fp_log(float a)
 {
+    int im, j2, j1, j3, p = -16;
+    int i = bitset(a), ab = bitset(a);
+    int k;
+    float output;
     if (a <= 0)
         return MIN_VAL;
     
     // Get the MSB position
-    int im, j2, j1, j3, p = -16;
-    int i = bitset(a);
-    float k;
     
     if (i & 0xFFFF0000)
     {
@@ -211,16 +212,16 @@ float fp_log(float a)
     }
     
     // Create a log based on MSB position
-    k = bitset(p * 45426);
+    k = p * 45426;
     
     // Create 3 parts of the 15 bits after MSB
     if (p >= 0)
     {
-        j3 = a >> (p + 1);
+        j3 = ab >> (p + 1);
     }
     else
     {
-        j3 = a << (-1 - p);
+        j3 = ab << (-1 - p);
     }
     j2 = j3 >> 5;
     j1 = j2 >> 5;
@@ -229,7 +230,7 @@ float fp_log(float a)
     im = (j1 & 31) - 1;
     if (im >= 0)
     {
-        k += bitset(LOOKUP_LOG1[im] & 0xFFFF);
+        k += LOOKUP_LOG1[im] & 0xFFFF;
     }
     
     // Use bits MSB + 6 to MSB + 10
@@ -237,7 +238,7 @@ float fp_log(float a)
     if (im >= j1)
     {
         im = im / j1;
-        k += bitset(LOOKUP_LOG2[im - 1] & 0xFFFF);
+        k += LOOKUP_LOG2[im - 1] & 0xFFFF;
         im = im * j1;
     }
     else
@@ -252,5 +253,7 @@ float fp_log(float a)
         k += (i + 1) >> 1;
     }
     
-    return k;
+    output = bitset(k);
+    
+    return output;
 }
