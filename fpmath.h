@@ -1,17 +1,13 @@
-float fp_sin(float a);
-float fp_cos(float a);
-float fp_log(float a);
-
 #define MAX_VAL 0x7FFFFFFF;
 #define MIN_VAL 0x80000000;
 
 // Sine and cosine defines
-#define FP_CONST_B   83443      // A = 4 / pi
-#define FP_CONST_C  -26561      // B = -4 / pi * pi
-#define FP_CONST_Q   14746      // P = 0.225 or 0.775
-#define FP_PI       205887      // pi
-#define FP_2PI      411775      // 2 * pi
-#define FP_PI_2     102944      // pi / 2
+#define FP_CONST_B   1.2732391357      // A = 4 / pi
+#define FP_CONST_C  -0.4052886963      // B = -4 / pi * pi
+#define FP_CONST_Q   0.225006      // P = 0.225 or 0.775
+#define FP_PI       3.1415926535897932384626      // pi
+#define FP_2PI      6.283185307      // 2 * pi
+#define FP_PI_2     1.570796327      // pi / 2
 
 int LOOKUP_LOG1[31] = {
     2017, 3973, 5873, 7719, 9515, 11262, 12965, 14624, 16242, 17821, 19364, 
@@ -25,134 +21,157 @@ int LOOKUP_LOG2[31] = {
     1706, 1768, 1830, 1892, 1955
 };
 
+float fp_sin(float x);
+float fp_cos(float x);
+float fp_log(float a);
+
 float fp_sin(float a)
 {
+    float c, absc, absa;
+    // int b = bitset(a);
+    float output;
     // Ensure input within the range of -pi to pi
-    // printf("Original: 0x%X, %f\n", a, fp_FP2Flt(a) * 180. / 3.141592653589793238);
-    a -= (a > FP_PI) * FP_2PI;
-    // printf("  Step 1: 0x%X, %f\n", a, fp_FP2Flt(a) * 180. / 3.141592653589793238);
-    a += (a < -FP_PI) * FP_2PI;
-    // printf("  Step 2: 0x%X, %f\n", a, fp_FP2Flt(a) * 180. / 3.141592653589793238);
+    // a += (a < -FP_PI) ? FP_2PI : 0.0;
+    // a -= (a > FP_PI) ? FP_2PI : 0.0;
+    if (a > FP_PI)
+        a -= FP_2PI;
+    if (a < -FP_PI)
+        a += FP_2PI;
     
-// #ifdef DEBUG
-//     if (a > FP_PI)
-//         printf("Sine function out of range: 0x%X\n", a);
-//     if (a < -FP_PI)
-//         printf("Sine function out of range: 0x%X\n", a);
-// #endif
+    // printf("%f\n", a);
+    
+    absa = fabs(a);
     
     // Use fast sine parabola approximation
-    float output = (FP_CONST_B * a) + ((FP_CONST_C * a) * fabs(a));
+    c = (FP_CONST_B * a) + (FP_CONST_C * a * absa);
+    
+    absc = fabs(c);
+    
+    // printf("%d : %d : %d\n", c, absc, FP_CONST_Q);
     
     // Get extra precision weighting the parabola:
-    output = FP_CONST_Q * ((output * fabs(output)) - output) + output; // Q * output + P * output * abs(output)
+    c += (FP_CONST_Q * ((c * absc) - c)); // Q * output + P * output * abs(output)
     
-    // printf("  Output: %f\n", fp_FP2Flt(output));
-    
-    return output;
+    // Finally, convert the integer back to a float.
+    return c;
 }
 
 /* Fixed point cosine */
 float fp_cos(float a)
 {
-    a -= (a > FP_PI) * FP_2PI;
-    a += (a < -FP_PI) * FP_2PI;
+    float c, d, e = 0, f, b = a;
+    b += FP_PI_2;
+    // printf("%f (input) => %f (add pi/2)\n", a, b);
+    // a += (a < -FP_PI) ? FP_2PI : 0;
+    // c = (b > FP_PI) ? FP_2PI : 0.0;
+    if (b > FP_PI)
+        e = FP_2PI;
+    d = b - c;
+    f = b - e;
+    
+    // printf("%f (if inline result) =/= %f (if branch result) (%f (inline eval) =/= %f (branch eval))\n", d, f, c, e);
+    
     // Use the sine function
-    return fp_sin(a + FP_PI_2);
+    return fp_sin(f);
 }
 
 float exp(float z) 
 {
-  int t;
-  int x = bitset(z);
-  int y = 0x00010000;  /* 1.0 */
-  
-  t = x - 0x58b91;   /* 5.5452 */ 
-  if (t >= 0) 
-  {
-    x = t;
-	y <<= 8;
-  }
-  t = x - 0x2c5c8;   /* 2.7726 */
-  if (t >= 0) 
-  {
-    x = t;
-	y <<= 4;
-  }
-  t = x - 0x162e4;  /* 1.3863 */
-  if (t >= 0) 
-  {
-    x = t;
-	y <<= 2;
-  }
-  t = x - 0x0b172;  /* 0.6931 */
-  if (t >= 0) 
-  {
-    x = t;
-	y <<= 1;
-  }
-  t = x - 0x067cd;  /* 0.4055 */
-  if (t >= 0)
-  {
-    x = t;
-	y += y >> 1;
-  }
-  t = x - 0x03920;  /* 0.2231 */
-  if (t >= 0)
-  {
-    x = t;
-	y += y >> 2;
-  }
-  t = x - 0x01e27;  /* 0.1178 */
-  if (t >= 0)
-  {
-    x = t;
-	y += y >> 3;
-  }
-  t = x - 0x00f85;  /* 0.0606 */
-  if (t >= 0)
-  {
-    x = t;
-	y += y >> 4;
-  }
-  t = x - 0x007e1;  /* 0.0308 */
-  if (t >= 0) 
-  {
-    x = t;
-	y += y >> 5;
-  }
-  t = x - 0x003f8;  /* 0.0155 */
-  if (t >= 0) 
-  {
-    x = t;
-	y += y >> 6;
-  }
-  t = x - 0x001fe;  /* 0.0078 */
-  if (t >= 0) 
-  {
-    x = t;
-	y += y >> 7;
-  }
-  
-  if (x & 0x100)
-    y += y >> 8;
-  if (x & 0x080)
-    y += y >> 9;
-  if (x & 0x040)
-    y += y >> 10;
-  if (x & 0x020)
-    y += y >> 11;
-  if (x & 0x010)
-    y += y >> 12;
-  if (x & 0x008)
-    y += y >> 13;
-  if (x & 0x004)
-    y += y >> 14;
-  if (x & 0x002)
-    y += y >> 15;
-  if (x & 0x001)
-    y += y >> 16;
-  return bitset(y);
+    int t;
+    int x = bitset(z);
+    int y = 0x00010000;  /* 1.0 */
+    
+    if (z >= 1.0)
+    {
+        t = x - 0x58b91;   /* 5.5452 */ 
+        if (t >= 0) 
+        {
+            x = t;
+            y <<= 8;
+        }
+        t = x - 0x2c5c8;   /* 2.7726 */
+        if (t >= 0) 
+        {
+            x = t;
+            y <<= 4;
+        }
+        t = x - 0x162e4;  /* 1.3863 */
+        if (t >= 0) 
+        {
+            x = t;
+            y <<= 2;
+        }
+        t = x - 0x0b172;  /* 0.6931 */
+        if (t >= 0) 
+        {
+            x = t;
+            y <<= 1;
+        }
+        t = x - 0x067cd;  /* 0.4055 */
+        if (t >= 0)
+        {
+            x = t;
+            y += y >> 1;
+        }
+        t = x - 0x03920;  /* 0.2231 */
+        if (t >= 0)
+        {
+            x = t;
+            y += y >> 2;
+        }
+        t = x - 0x01e27;  /* 0.1178 */
+        if (t >= 0)
+        {
+            x = t;
+            y += y >> 3;
+        }
+        t = x - 0x00f85;  /* 0.0606 */
+        if (t >= 0)
+        {
+            x = t;
+            y += y >> 4;
+        }
+        t = x - 0x007e1;  /* 0.0308 */
+        if (t >= 0) 
+        {
+            x = t;
+            y += y >> 5;
+        }
+        t = x - 0x003f8;  /* 0.0155 */
+        if (t >= 0) 
+        {
+            x = t;
+            y += y >> 6;
+        }
+        t = x - 0x001fe;  /* 0.0078 */
+        if (t >= 0) 
+        {
+            x = t;
+            y += y >> 7;
+        }
+
+        if (x & 0x100)
+            y += y >> 8;
+        if (x & 0x080)
+            y += y >> 9;
+        if (x & 0x040)
+            y += y >> 10;
+        if (x & 0x020)
+            y += y >> 11;
+        if (x & 0x010)
+            y += y >> 12;
+        if (x & 0x008)
+            y += y >> 13;
+        if (x & 0x004)
+            y += y >> 14;
+        if (x & 0x002)
+            y += y >> 15;
+        if (x & 0x001)
+            y += y >> 16;
+        return bitset(y);
+    }
+    else
+        return 0;
 }
 
 float fp_log(float a)
@@ -210,7 +229,7 @@ float fp_log(float a)
     im = (j1 & 31) - 1;
     if (im >= 0)
     {
-        k += ((float) LOOKUP_LOG1[im] & 0xFFFF);
+        k += bitset(LOOKUP_LOG1[im] & 0xFFFF);
     }
     
     // Use bits MSB + 6 to MSB + 10
@@ -218,7 +237,7 @@ float fp_log(float a)
     if (im >= j1)
     {
         im = im / j1;
-        k += ((float) LOOKUP_LOG2[im - 1] & 0xFFFF);
+        k += bitset(LOOKUP_LOG2[im - 1] & 0xFFFF);
         im = im * j1;
     }
     else
