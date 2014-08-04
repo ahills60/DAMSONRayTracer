@@ -264,10 +264,14 @@ float fp_log(float a)
 
 float fp_pow(float a, float b)
 {
+    float output;
+    
     if (a <= 0)
         return 0;
-        
-    return fp_exp(fp_log(a) * b));
+    
+    output = fp_exp(fp_log(a) * b));
+    
+    return output;
 }
 
 int fp_powi(int a, int b)
