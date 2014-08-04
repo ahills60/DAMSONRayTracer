@@ -14,13 +14,6 @@ void createCube(int objectIndex, float size)
     float minVal, maxVal;
     int i, j;
     
-    // Halve the size:
-    size = size >> 1;
-    
-    // Points will always be at the extremes:
-    minVal = -size;
-    maxVal = size;
-    
     int pattern = {0, 0, 0, // T1
                    1, 0, 0,
                    1, 1, 0,
@@ -58,6 +51,13 @@ void createCube(int objectIndex, float size)
                    0, 1, 1,
                    0, 1, 0};
     
+    // Halve the size:
+    size = size >> 1;
+    
+    // Points will always be at the extremes:
+    minVal = -size;
+    maxVal = size;
+    
     for (i = 0; i < 12; i += 1)
     {
         for (j = 0; j < 3; j += 1)
@@ -76,19 +76,21 @@ void createPlaneXZ(int objectIndex, float size)
     float minVal, maxVal;
     int i, j;
     
+    // Create a pattern
+    int pattern = {1, 1,
+                   1, 0,
+                   0, 0,
+                   1, 1,
+                   0, 1,
+                   0, 0};
+    
+    
+    
     // Halve the size
     size >>= 1;
     
     minVal = -size;
     maxVal = size;
-    
-    // Create a pattern
-    pattern = {1, 1,
-               1, 0,
-               0, 0,
-               1, 1,
-               0, 1,
-               0, 0};
     
     // Create two triangles:
    for (i = 0; i < 2; i += 1)

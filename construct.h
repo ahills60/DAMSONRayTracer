@@ -397,7 +397,7 @@ void draw(float ray[6], int recursion)
     float outputColour[3], reflectiveColour[3], refractiveColour[3], textureColour[3];
     float vector[3], hitLocation[3], localHitData[18];
     float colour[3], alpha;
-    fixedp reflection, refraction;
+    float reflection, refraction;
     float newRay[6], source[3];
     int i;
     

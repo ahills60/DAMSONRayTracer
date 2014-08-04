@@ -57,7 +57,7 @@ void ambiance(float localHitData[18], float textureColour[3])
 /* Creates diffusion effect given a hit, a scene and some light */
 void diffusion(float localHitData[18], float lightDirection[3], float textureColour[3])
 {
-    float vector[3];
+    float vector[3], distance, dotProduct;
     int i;
     
     if (MaterialDB[localHitData[HitDataObjectIndex]][MaterialDiffusive] > 0)
@@ -66,14 +66,14 @@ void diffusion(float localHitData[18], float lightDirection[3], float textureCol
             vector[i] = localHitData[HitDataHitNormal + i];
         
         // Need to compute the direction of light
-        float dotProduct = dot(vector, lightDirection);
+        dotProduct = dot(vector, lightDirection);
         
         // If the dot product is negative, this term shouldn't be included.
         if (dotProduct < 0)
             return;
         
         // Dot product is positive, so continue
-        float distance = dotProduct * MaterialDB[localHitData[HitDataObjectIndex]][MaterialDiffusive];
+        distance = dotProduct * MaterialDB[localHitData[HitDataObjectIndex]][MaterialDiffusive];
         
         // Has a texture been defined?
         if (textureColour[0] < 0)
@@ -109,7 +109,7 @@ void diffusion(float localHitData[18], float lightDirection[3], float textureCol
 void specular(float localHitData[18], float lightDirection[3], float textureColour[3])
 {
     int i;
-    float vector[3], dotproduct;
+    float vector[3], dotproduct, distance;
     
     if (MaterialDB[localHitData[HitDataObjectIndex]][MaterialSpecular] > 0)
     {
@@ -123,7 +123,7 @@ void specular(float localHitData[18], float lightDirection[3], float textureColo
         if (dotProduct < 0)
             return;
         
-        float distance = fp_pow(dotProduct, MaterialDB[localHitData[HitDataObjectIndex]][MaterialShininess]) * MaterialDB[localHitData[HitDataObjectIndex]][MaterialSpecular]);
+        distance = fp_pow(dotProduct, MaterialDB[localHitData[HitDataObjectIndex]][MaterialShininess]) * MaterialDB[localHitData[HitDataObjectIndex]][MaterialSpecular]);
             
         // Has a texture been defined?
         if (textureColour[0] < 0)

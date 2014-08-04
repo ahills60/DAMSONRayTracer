@@ -372,7 +372,7 @@ void setTriangle(int objectIndex, int triangleIndex, float u[3], float v[3], flo
     {
         ObjectDB[objectIndex][triangleIndex][Trianglenormcrvmuwmux + i] = ResultStore[i];
         // Precompute fabs whilst we're at it.
-        fabsNormDom[i] = fp_fabs(NormDom[i]);
+        fabsNormDom[i] = fabs(NormDom[i]);
     }
     
     // Invalidate UV coordinates
