@@ -13,6 +13,8 @@ float fp_sin(float x);
 float fp_cos(float x);
 float fp_exp(float z);
 float fp_log(float a);
+float fp_pow(float a, float b);
+int fp_powi(int a, int b);
 
 float fp_sin(float a)
 {
@@ -251,4 +253,25 @@ float fp_log(float a)
     x = 0x80000000 - x;
     y -= x >> 15;
     return bitset(y);
+}
+
+float fp_pow(float a, float b)
+{
+    if (a <= 0)
+        return 0;
+        
+    return fp_exp(fp_log(a) * b));
+}
+
+int fp_powi(int a, int b)
+{
+    int result = 1;
+    while (b)
+    {
+        if (b & 1)
+            result *= a;
+        b >>= 1;
+        a *= a;
+    }
+    return result;
 }
