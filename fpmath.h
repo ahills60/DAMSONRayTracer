@@ -9,12 +9,19 @@
 #define FP_2PI      6.283185307      // 2 * pi
 #define FP_PI_2     1.570796327      // pi / 2
 
+int LOOKUP_SQRT[31] = {
+    1016, 2017, 3003, 3975, 4934, 5880, 6814, 7735, 8646, 9545, 10433, 
+    11312, 12180, 13039, 13888, 14729, 15561, 16384, 17199, 18006, 18806, 
+    19598, 20382, 21160, 21931, 22695, 23452, 24203, 24948, 25686, 26419
+};
+
 float fp_sin(float x);
 float fp_cos(float x);
 float fp_exp(float z);
 float fp_log(float a);
 float fp_pow(float a, float b);
 int fp_powi(int a, int b);
+float fp_sqrt(float ina);
 
 float fp_sin(float a)
 {
@@ -274,4 +281,127 @@ int fp_powi(int a, int b)
         a *= a;
     }
     return result;
+}
+
+float fp_sqrt(float ina)
+{
+    int a = bitset(ina);
+    int im, p = -16;
+    int i, k = 0;
+    int longNum;
+    float output;
+    
+    if (a <= 0)
+    {
+        return 0;
+    }
+    
+    // Get MSB
+    i = a;
+    
+    if (i & 0xFFFF0000)
+    {
+        i >>= 16;
+        p += 16;
+    }
+    if (i & 0x0000FF00)
+    {
+        i >>= 8;
+        p += 8;
+    }
+    if (i & 0x000000F0)
+    {
+        i >>= 4;
+        p += 4;
+    }
+    if (i & 0x0000000C)
+    {
+        i >>= 2;
+        p += 2;
+    }
+    if (i & 0x00000002)
+    {
+        i >>= 1;
+        p += 1;
+    }
+    
+    // Lookup the sqrt multiplier based on bits MSB + 0 to MSB + 3 then
+    // correct odd MSB positions using sqrt(2). Sqrt(2) is roughly 92682
+    if (p >= -11)
+    {
+        i = a >> (11 + p);
+    }
+    else
+    {
+        i = a << (-11 - p);
+    }
+    
+    im = (i & 31) - 1;
+    if (im >= 0)
+    {
+        k = LOOKUP_SQRT[im] & 0xFFFF;
+        if ((p & 1) > 0)
+        {
+            k = k * 92682;
+            if (k < 0)
+            {
+                k &= 0x7FFFFFFF;
+                k >>= 16;
+                k |= 0x8000;
+            }
+            else
+                k = (k >> 16);
+        }
+    }
+    
+    if ((p & 1) > 0)
+    {
+        k += 92682; // add sqrt(2)
+    }
+    else
+    {
+        k += 0x10000; // add 1
+    }
+    
+    // Shift the square root estimate based on the halved MSB position
+    if (p >= 0)
+    {
+        k <<= (p >> 1);
+    }
+    else
+    {
+        k >>= ((1 - p) >> 1);
+    }
+    
+    // // Do two Newtonian square root iteration steps to increase precision
+    // int64 longNum = (int64)(a) << 16;
+    // k += (fixedp) (longNum / k);
+    // k = (k + (fixedp) ((longNum << 2) / k) + 2) >> 2;
+    
+    // longNum = a;
+    /*
+    printf("before: %d (a = %d)\n", k, a);
+    k += a / k;
+    printf("after: %d (a / k: %d)\n", k, a / k);
+    k >>= 1;
+    k += a / k;
+    k >>= 1;
+    */
+    
+    // Andrew special:
+    output = bitset(k);
+    output += ina / output;
+    k = bitset(output);
+    k >>= 1;
+    output = bitset(k);
+    output += ina / output;
+    k = bitset(output);
+    k >>= 1;
+    
+    // k >>= 1;
+    // k = (k + ((longNum << 2) / k) + 2) >> 2;
+    
+    output = bitset(k);
+    
+    return output;
 }
