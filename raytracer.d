@@ -70,7 +70,8 @@ void EnterExternalData(int, int, int, int);
 // Functions start here:
 int main(void)
 {
-    int i, h;
+    float clocation[3] = {1.0, 2.0, 4.0}, cTheta = 0x0001C4A8, cPhi = 0xFFFE6DDE, cview[3], ray[6];
+    int i, x, y;
     
     // Set the light source:
     Light[LightVector + 0] = -1.0;
@@ -87,6 +88,31 @@ int main(void)
     
     // Global Lighting flag:
     Light[LightGlobalFlag] = 0;
+    
+    // Now initialise the camera:
+    cview[0] = fp_sin(cTheta) * fp_cos(cPhi);
+    cview[1] = fp_cos(cTheta);
+    cview[2] = fp_sin(cTheta) * fp_sin(cPhi);
+    setCamera(clocation[3], cview, 45.0, IMAGE_WIDTH, IMAGE_HEIGHT);
+    
+    // Now populate the scene.
+    populateScene();
+    
+    // Begin main task:
+    for (y = 0; y < IMAGE_HEIGHT; y += 1)
+    {
+        for (x = 0; x < IMAGE_WIDTH; x += 1)
+        {
+            // Create a ray and retrive it from the result store.
+            createRay(x, y);
+            for (i = 0; i < 6; i += 1)
+                ray[i] = ResultStore[i];
+            // Draw this ray. The result is stored in the result store.
+            draw(ray, RECURSIONS);
+            // Send the RGB value directly from the result store.
+            printf("draw(%i, %i) = %f %f %f\n", x, y, ResultStore[0], ResultStore[1], ResultStore[2]);
+        }
+    }
 }
 /*
 void RayTrace(void)
