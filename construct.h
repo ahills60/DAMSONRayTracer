@@ -338,40 +338,96 @@ void populateDefaultScene()
     float transMat[16], tempMat[16];
     
     // Set material types
-    //setMaterial(*matObj, light, Vector colour, fixedp ambiance, fixedp diffusivity, fixedp specular, fixedp shininess, fixedp reflectivity, fixedp opacity, fixedp refractivity)
-    setMaterial(&redGlass, lightSrc, red, fp_Flt2FP(0.0), fp_Flt2FP(0.5), fp_Flt2FP(0.0), fp_Flt2FP(0.0), fp_Flt2FP(0.0), fp_Flt2FP(0.8), fp_Flt2FP(1.4), -1, m, f);
-    setMaterial(&nonreflBlue, lightSrc, blue, fp_Flt2FP(0.1), fp_Flt2FP(0.5), fp_Flt2FP(0.4), fp_Flt2FP(2.0), fp_Flt2FP(0.0), fp_Flt2FP(0.0), fp_Flt2FP(1.4), -1, m, f);
-    setMaterial(&nonreflGreen, lightSrc, green, fp_Flt2FP(0.1), fp_Flt2FP(0.5), fp_Flt2FP(0.4), fp_Flt2FP(2.0), fp_Flt2FP(0.0), fp_Flt2FP(0.0), fp_Flt2FP(1.4), -1, m, f);
-    setMaterial(&nonreflPurple, lightSrc, purple, fp_Flt2FP(0.1), fp_Flt2FP(0.5), fp_Flt2FP(0.4), fp_Flt2FP(2.0), fp_Flt2FP(0.0), fp_Flt2FP(0.0), fp_Flt2FP(1.4), -1, m, f);
-    setMaterial(&mirror, lightSrc, white, fp_Flt2FP(0.1), fp_Flt2FP(0.0), fp_Flt2FP(0.9), fp_Flt2FP(32.0), fp_Flt2FP(0.6), fp_Flt2FP(0.0), fp_Flt2FP(1.4), -1, m, f);
+    // setMaterial(int materialIdx, float colour[3], float ambiance, float diffusive, float specular, float shininess, float reflectivity, float opacity, float refractivity, int textureIndex)
+    setMaterial(0, red, 0.0, 0.5, 0.0, 0.0, 0.0, 0.8, 1.4, -1);
+    setMaterial(1, blue, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
+    setMaterial(2, green, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
+    setMaterial(3, purple, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
+    setMaterial(4, white, 0.1, 0.0, 0.9, 32.0, 0.6, 0.0, 1.4, -1);
     
-    // Create objects
-    createCube(&cube, redGlass, fp_Flt2FP(1.0), m, f);
-    createPlaneXZ(&planeBase, nonreflPurple, fp_Flt2FP(10.0), m, f);
-    createPlaneXZ(&planeTop, nonreflPurple, fp_Flt2FP(10.0), m, f);
-    createPlaneXZ(&planeLeft, nonreflGreen, fp_Flt2FP(10.0), m, f);
-    createPlaneXZ(&planeRight, nonreflGreen, fp_Flt2FP(10.0), m, f);
-    createPlaneXZ(&planeBack, nonreflBlue, fp_Flt2FP(10.0), m, f);
-    createCube(&mirrCube, mirror, fp_Flt2FP(1.5), m, f);
+    noObjects = 5;
     
-    // Arrange
-    transformObject(&cube, matMult(genTransMatrix(fp_Flt2FP(2), fp_Flt2FP(0.5), -fp_Flt2FP(1), m, f), genYRotateMat(fp_Flt2FP(45), m, f), m, f), m, f);
-    transformObject(&planeBase, genTransMatrix(fp_Flt2FP(1), 0, -fp_Flt2FP(4), m, f), m, f);
-    transformObject(&planeLeft, matMult(genTransMatrix(-fp_Flt2FP(2), 0, -fp_Flt2FP(4), m, f), genZRotateMat(-fp_Flt2FP(90), m, f), m, f), m, f);
-    transformObject(&planeRight, matMult(genTransMatrix(fp_Flt2FP(4), 0, -fp_Flt2FP(4), m, f), genZRotateMat(fp_Flt2FP(90), m, f), m, f), m, f);
-    transformObject(&planeBack, matMult(genTransMatrix(fp_Flt2FP(1), 0, -fp_Flt2FP(6), m, f), genXRotateMat(fp_Flt2FP(90), m, f), m, f), m, f);
-    transformObject(&planeTop, matMult(genTransMatrix(fp_Flt2FP(1), fp_Flt2FP(5), -fp_Flt2FP(4), m, f), genZRotateMat(fp_Flt2FP(180), m, f), m, f), m, f);
-    transformObject(&mirrCube, matMult(genTransMatrix(fp_Flt2FP(0), fp_Flt2FP(0.9), -fp_Flt2FP(2.7), m, f), genYRotateMat(fp_Flt2FP(20), m, f), m, f), m, f);
+    // Create one object at a time by first creating transformation matrix and then shape.
     
-    // Create the scene
-    initialiseScene(scene, 6, f);
-    addObject(scene, cube, f);
-    addObject(scene, planeBase, f);
-    addObject(scene, planeLeft, f);
-    addObject(scene, planeRight, f);
-    addObject(scene, planeBack, f);
-    addObject(scene, mirrCube, f);
-    // addObject(scene, planeTop);
+    // Cube 1:
+    genTransMatrix(2.0, 0.5, -1.0);
+    for (i = 0; i < 16; i += 1)
+        tempMat[i] = ResultStore[i];
+    genYRotateMat(45.0);
+    for (i = 0; i < 16; i += 1)
+        transMat[i] = ResultStore[i];
+    matMult(transMat, tempMat);
+    for (i = 0; i < 16; i += 1)
+        transMat[i] = ResultStore[i];
+    // createCube(int objectIndex, float size, float transMat[16])
+    createCube(0, 1.0, transMat);
+    
+    // PlaneXZ 1: the base plane:
+    genTransMatrix(1.0, 0.0, -4.0);
+    for (i = 0; i < 16; i += 1)
+        transMat[i] = ResultStore[i];
+    createPlaneXZ(3, 10.0, transMat);
+    
+    // PlaneXZ 2: the top plane:
+    genTransMatrix(1.0, 5.0, -4.0);
+    for (i = 0; i < 16; i += 1)
+        tempMat[i] = ResultStore[i];
+    genZRotateMat(180.0);
+    for (i = 0; i < 16; i += 1)
+        transMat[i] = ResultStore[i];
+    matMult(transMat, tempMat);
+    for (i = 0; i < 16; i += 1)
+        transMat[i] = ResultStore[i];
+    createPlaneXZ(3, 10.0, transMat);
+    
+    // PlaneXZ 3: the left plane:
+    genTransMatrix(-2.0, 0.0, -4.0);
+    for (i = 0; i < 16; i += 1)
+        tempMat[i] = ResultStore[i];
+    genZRotateMat(-90.0);
+    for (i = 0; i < 16; i += 1)
+        transMat[i] = ResultStore[i];
+    matMult(transMat, tempMat);
+    for (i = 0; i < 16; i += 1)
+        transMat[i] = ResultStore[i];
+    createPlaneXZ(2, 10.0, transMat);
+    
+    // PlaneXZ 4: the right plane:
+    genTransMatrix(4.0, 0.0, -4.0);
+    for (i = 0; i < 16; i += 1)
+        tempMat[i] = ResultStore[i];
+    genZRotateMat(90.0);
+    for (i = 0; i < 16; i += 1)
+        transMat[i] = ResultStore[i];
+    matMult(transMat, tempMat);
+    for (i = 0; i < 16; i += 1)
+        transMat[i] = ResultStore[i];
+    createPlaneXZ(2, 10.0, transMat);
+    
+    // PlaneXZ 5: the left plane:
+    genTransMatrix(1.0, 0.0, -6.0);
+    for (i = 0; i < 16; i += 1)
+        tempMat[i] = ResultStore[i];
+    genXRotateMat(90.0);
+    for (i = 0; i < 16; i += 1)
+        transMat[i] = ResultStore[i];
+    matMult(transMat, tempMat);
+    for (i = 0; i < 16; i += 1)
+        transMat[i] = ResultStore[i];
+    createPlaneXZ(1, 10.0, transMat);
+    
+    // PlaneXZ 3: the left plane:
+    genTransMatrix(0.0, 0.9, -2.7);
+    for (i = 0; i < 16; i += 1)
+        tempMat[i] = ResultStore[i];
+    genYRotateMat(20.0);
+    for (i = 0; i < 16; i += 1)
+        transMat[i] = ResultStore[i];
+    matMult(transMat, tempMat);
+    for (i = 0; i < 16; i += 1)
+        transMat[i] = ResultStore[i];
+    // createCube(int objectIndex, float size, float transMat[16])
+    createCube(4, 1.5, transMat);
 }
 
 /* The populateScene function calls the ReadByteFile function. This is here mainly

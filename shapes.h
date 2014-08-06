@@ -4,11 +4,14 @@ extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
 extern int noObjects;
 extern int noTriangles[MAX_OBJECTS];
 
-// Prototype these functions:
-void createCube(int objectIndex, float size);
-void createPlaneXZ(objectIndex, float size);
+// Result storage
+extern float ResultStore[16];
 
-void createCube(int objectIndex, float size)
+// Prototype these functions:
+void createCube(int objectIndex, float size, float transMat[16]);
+void createPlaneXZ(objectIndex, float size, float transMat[16]);
+
+void createCube(int objectIndex, float size, float transMat[16])
 {
     float u[3], v[3], w[3];
     float minVal, maxVal;
@@ -66,11 +69,20 @@ void createCube(int objectIndex, float size)
             v[j] = (pattern[(i * 9) + 3 + j]) ? maxVal : minVal;
             w[j] = (pattern[(i * 9) + 6 + j]) ? maxVal : minVal;
         }
+        matVecMult(transMat, u);
+        for (j = 0; j < 3; j += 1)
+            u[j] = ResultStore[j];
+        matVecMult(transMat, v);
+        for (j = 0; j < 3; j += 1)
+            v[j] = ResultStore[j];
+        matVecMult(transMat, w);
+        for (j = 0; j < 3; j += 1)
+            w[j] = ResultStore[j];
         setTriangle(objectIndex, noTriangles[objectIndex], u, v, w);
     }
 }
 
-void createPlaneXZ(int objectIndex, float size)
+void createPlaneXZ(int objectIndex, float size, float transMat[16])
 {
     float u[3] = {0, 0, 0}, v[3] = {0, 0, 0}, w[3] = {0, 0, 0};
     float minVal, maxVal;
@@ -101,6 +113,16 @@ void createPlaneXZ(int objectIndex, float size)
            v[i * 6 + j*2 + 2] = (pattern[i * 6 + j + 2]) ? maxVal : minVal;
            w[i * 6 + j*2 + 4] = (pattern[i * 6 + j + 4]) ? maxVal : minVal;
        }
+       
+       matVecMult(transMat, u);
+       for (j = 0; j < 3; j += 1)
+           u[j] = ResultStore[j];
+       matVecMult(transMat, v);
+       for (j = 0; j < 3; j += 1)
+           v[j] = ResultStore[j];
+       matVecMult(transMat, w);
+       for (j = 0; j < 3; j += 1)
+           w[j] = ResultStore[j];
        setTriangle(objectIndex, noTriangles[objectIndex], u, v, w);
    }
 }
