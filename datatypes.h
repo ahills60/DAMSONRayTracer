@@ -19,6 +19,9 @@ extern int noTriangles[MAX_OBJECTS];
 // Modulo vector:
 extern int DomMod[5];
 
+// Camera vector
+extern float Camera[22];
+
 /*
 // UV coordinate structure
 typedef struct UVCoord
@@ -509,7 +512,7 @@ void setUVTriangle(Triangle *triangle, Vector u, Vector v, Vector w, UVCoord uUV
         printf("wmu.x: 0x%X\nwmu.y: 0x%X\nwmu.z: 0x%X\n", (*triangle).wmu.x, (*triangle).wmu.y, (*triangle).wmu.z);
         printf("nd.x: 0x%X\nnd.y: 0x%X\nnd.z: 0x%X\n\n", (*triangle).NormDom.x, (*triangle).NormDom.y, (*triangle).NormDom.z);
     }
-    */
+    *//*
     // Now precompute components for Barycentric intersection
     dk = (dk == 0) ? fp_fp1 : dk;
     (*triangle).NUDom = fp_div(du, dk);
@@ -549,7 +552,7 @@ void setPrecompTriangle(Triangle *triangle, Vector u, Vector v, Vector w, UVCoor
     (*triangle).CVDom = CVDom;
 }
 
-/* Multiple a UV coordinate by a scalar value */
+// Multiple a UV coordinate by a scalar value
 void scalarUVMult(float a, float u[2], MathStat *m)
 {
     int i;
@@ -558,7 +561,7 @@ void scalarUVMult(float a, float u[2], MathStat *m)
         ResultStore[i] = a * u[i];
 }
 
-/* Add two UV coordinates */
+// Add two UV coordinates
 void uvAdd(float a[2], float b[2], MathStat *m)
 {
     int i;
@@ -573,3 +576,53 @@ void uvSub(float a[2], float b[2], MathStat *m)
         ResultStore = a[i] - b[i];
 }
 */
+
+// Camera creation. Initialises the camera vector
+void setCamera(float location[3], float view[3], float fov, int width, int height)
+{
+    float vertical[3], horizontal[3], up[3] = {0, 1.0, 0}, ar, fovh, dfovardw, fovar, dfovdh;
+    int i, temp;
+    
+    cross(view, up);
+    for (i = 0; i < 3; i += 1)
+        horizontal[i] = ResultStore[i];
+    
+    cross(horizontal, view);
+    for (i = 0; i < 3; i += 1)
+        vertical[i] = ResultStore[i];
+    
+    temp = bitset(fov);
+    temp >>= 1;
+    fovh = bitset(temp);
+    fovh = deg2rad(fovh);
+    
+    // Now calcualte aspect ratio
+    ar = (float) width / (float) height;
+    
+    temp = bitset(ar);
+    temp <<= 1;
+    dfovardw = bitset(temp);
+    dfovardw *= fovh;
+    dfovardw /= (float) width;
+    
+    fovar = fovh * ar;
+    
+    dfovdh = deg2rad(fov) / (float) height;
+    
+    // Now populate the camera vector
+    for (i = 0; i < 3; i += 1)
+    {        
+        Camera[CameraLocation + i] = location[i];
+        Camera[CameraView + i] = view[i];
+        Camera[CameraUp + i] = up[i];
+        Camera[CameraHorizontal + i] = horizontal[i];
+        Camera[CameraVertical + i] = vertical[i];
+    }
+    Camera[CameraFOV] = fovh;
+    Camera[CameraAR] = ar;
+    Camera[CameraHeight] = (float) height;
+    Camera[CameraWidth] = (float) width;
+    Camera[CameraDFoVDW] = dfovardw;
+    Camera[CameraFoVAR] = fovar;
+    Camera[CameraDFoVDH] = dfovdh;
+}

@@ -83,3 +83,17 @@
 #define TextureHeight                           1
 #define TextureAlpha                            2
 #define TextureMemStart                         3
+
+// Camera vector
+#define CameraLocation                          0
+#define CameraView                              3
+#define CameraUp                                6
+#define CameraHorizontal                        9
+#define CameraVertical                          12
+#define CameraFOV                               15
+#define CameraAR                                16
+#define CameraHeight                            17
+#define CameraWidth                             18
+#define CameraDFoVDW                            19
+#define CameraFoVAR                             20
+#define CameraDFoVDH                            21

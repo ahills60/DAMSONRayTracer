@@ -15,6 +15,7 @@ extern float ResultStore[16];
 extern int noObjects;
 extern int noTriangles[MAX_OBJECTS];
 extern float Light[8];
+extern float Camera[22];
 
 
 
