@@ -8,12 +8,8 @@
 #define NODE_COUNT                              1
 #define PIXEL_JUMP                              NODE_COUNT
 #define MAX_THREADS                             10
-#define MAX_COORDS                              20
+// #define MAX_COORDS                              20
 #define STACK_SIZE                              500
-
-#define PORT_X                                  1000
-#define PORT_Y                                  1001
-#define PORT_Z                                  1002
 
 #define MAX_OBJECTS                             200
 #define MAX_TRIANGLES                           10000
