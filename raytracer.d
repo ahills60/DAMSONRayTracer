@@ -1,6 +1,14 @@
 /* This is the ray tracer software written in DAMSON */
 
 #include "raytracer.h"
+#include "fpmath.h"
+#include "datatypes.h"
+#include "rays.h"
+#include "lighting.h"
+#include "objects.h"
+#include "shapes.h"
+#include "textures.h"
+#include "construct.h"
 
 #node raytracernode
 
