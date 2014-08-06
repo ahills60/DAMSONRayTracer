@@ -68,30 +68,22 @@ void EnterExternalData(int, int, int, int);
 int main(void)
 {
     int i, h;
-    // tickrate(1000);
-    printf("Initialising external coordinates...\n");
-    for (i = 0; i < MAX_COORDS; i += 1)
-    {
-        ExternalSource[i] = 0;
-        ExternalComplete[i] = 0;
-        ExternalCoordinateTimes[i][0] = 0;
-        ExternalCoordinateTimes[i][1] = 0;
-        ExternalCoordinateTimes[i][2] = 0;
-    }
     
-    printf("Spawning processes...\n");
-    for (i = 0; i < MAX_THREADS; i += 1)
-    {
-        h = createthread(RayTrace, STACK_SIZE);
-        
-        if (!h)
-        {
-            // Unable to create thread
-            printf("Unable to create a new thread. Total number of threads: %d.\n", (i + 1));
-            break;
-        }
-    }
-    return 1;
+    // Set the light source:
+    Light[LightVector + 0] = -1.0;
+    Light[LightVector + 1] =  4.0;
+    Light[LightVector + 2] =  4.0;
+    
+    // White light:
+    Light[LightColour + 0] =  1.0;
+    Light[LightColour + 1] =  1.0;
+    Light[LightColour + 2] =  1.0;
+    
+    // Shadow factor:
+    Light[LightShadowFactor] = 0.3;
+    
+    // Global Lighting flag:
+    Light[LightGlobalFlag] = 0;
 }
 /*
 void RayTrace(void)
