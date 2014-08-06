@@ -382,3 +382,31 @@ void refractRay(float localHitData[18], float inverserefreactivity, float square
         ResultStore[i] = localHitData[HitDataHitLocation + i];
     }
 }
+
+void createRay(int x, int y)
+{
+    float sx, sy, shorizontal[3], svertical[3], sview[3];
+    int i;
+    
+    // First scale x and scale y:
+    sx = (((float) x) * Camera[CameraDFoVARDW]) - Camera[CameraFoVAR];
+    sy = (((float) y) * Camera[CameraDFoVDH]) - Camera[FoV];
+    
+    // Next, scale horizontal and vertical.
+    for (i = 0; i < 3; i += 1)
+    {
+        shorizontal[i] = sx * Camera[CameraHorizontal + i];
+        svertical[i] = sy * Camera[CameraVertical + i];
+        sview[i] = shorizontal[i] + svertical[i] + Camera[CameraView + i];
+    }
+    
+    vecNormalised(sview);
+    
+    // Populate the resultstore with the ray vector
+    for (i = 0; i < 3; i += 1)
+    {
+        ResultStore[i + 3] = ResultStore[i];
+        ResultStore[i] = Camera[CameraLocation + i];
+    }
+}
+    
