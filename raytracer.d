@@ -29,8 +29,9 @@ float HitData[18];
 // ObjectDB holds triangle information. ObjectDB[ObjectIndex][TriangleIndex][Parameter]
 // Holds: TriangleU (3), TriangleUuv (2), TriangleVuv (2), TriangleWuv (2), DominantAxis (1), normcrvmuwmu (3), NUDom (1), NVDom (1), NDDom (1), BUDom (1), BVDom (1), CUDom (1), CVDom (1) = 20
 float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
-int noObjects;
+int noObjects = 0;
 int noTriangles[MAX_OBJECTS];
+
 // Likewise, do the same for a materials databse:
 // Holds: colour (3), reflectivity (1), opacity (1), refractivity (1), inverserefractivity (1), squareinverserefractivity (1), ambiance (1), diffusive (1), specular (1), shininess (1), matLightColour (3), compAmbianceColour (3), textureIdx (1) = 19
 float MaterialDB[MAX_OBJECTS][19];
@@ -50,16 +51,16 @@ int RenderTransparencies = 0;
 int DomMod[5] = {0, 1, 2, 0, 1};
 
 // Prototypes
+/*
 void datainterrupt(int, int, int, int);
 void RayTrace(void);
 void EnterExternalData(int, int, int, int);
-
+*/
 // Functions start here:
 int main(void)
 {
     int i, h;
     // tickrate(1000);
-    printf("Port number: %d\n", OUTPORT);
     printf("Initialising external coordinates...\n");
     for (i = 0; i < MAX_COORDS; i += 1)
     {
@@ -84,14 +85,14 @@ int main(void)
     }
     return 1;
 }
-
+/*
 void RayTrace(void)
 {
     int i, n, SourceNode = 0;
     float processVector[3];
     
     printf("Ray tracing thread initialised.\n");
-    
+    /*
     while (!Terminate)
     {
         // Lock the variables
@@ -140,7 +141,7 @@ void RayTrace(void)
             // Process inside job
             
         }
-        
+        *
         
         // Reset variables
         SourceNode = 0;
@@ -163,10 +164,10 @@ void datainterrupt(int source, int port, int data, int rxtime)
         default:
             printf("Unknown data received from %d on port %d.", source, port);
     }
-    
+
 }
 
-// Find the latest source
+Find the latest source
 void EnterExternalData(int source, int PortNumber, int Data, int RxTime)
 {
     wait(&ExternalSemaphore);
@@ -178,9 +179,10 @@ void EnterExternalData(int source, int PortNumber, int Data, int RxTime)
         return;
     }
     // If here, there's enough room to hold these coordinates.
-    
+
     signal(&ExternalSemaphore);
 }
+*/
 
 #alias raytracernode 1
     // clockinterrupt: 0
