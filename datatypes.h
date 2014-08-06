@@ -111,9 +111,16 @@ void setVector(float x, float y, float z)
 /* Convert from degrees to radians */
 float deg2rad(float deg)
 {
+    int temp;
     // Equivalent to deg * pi / 180, but with increased resolution:
+    deg *= 4.468042886;
+    
+    // Temporary convert to int to shift
+    temp = bitset(deg);
+    temp >>= 8;
+    
     // (deg * 256 * pi / 180) / 256
-    return (deg * 4.468042886) >> 8; // * M_PI / 180.0;
+    return bitset(temp); // * M_PI / 180.0;
 }
 
 /* Vector multiply */
@@ -443,7 +450,7 @@ void setTriangle(int objectIndex, int triangleIndex, float u[3], float v[3], flo
     noTriangles[objectIndex] += 1;
     
 }
-
+/*
 void setUVTriangle(Triangle *triangle, Vector u, Vector v, Vector w, UVCoord uUV, UVCoord vUV, UVCoord wUV, MathStat *m, FuncStat *f)
 {
     int uIdx, vIdx;
@@ -565,3 +572,4 @@ void uvSub(float a[2], float b[2], MathStat *m)
     for (i = 0; i < 2; i += 1)
         ResultStore = a[i] - b[i];
 }
+*/
