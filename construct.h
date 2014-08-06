@@ -8,22 +8,15 @@
  *      Author: andrew
  */
 
-#include <stdio.h>
 #include "fpmath.h"
-#include "craytracer.h"
 #include "datatypes.h"
 #include "rays.h"
-#include "image.h"
 #include "lighting.h"
 #include "objects.h"
-#include "colours.h"
-#include "mathstats.h"
-#include "funcstats.h"
 #include "textures.h"
 #include "shapes.h"
 
 Texture *Textures;
-extern char *inputFile;
 
 extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
 extern float HitData[18];
@@ -34,12 +27,13 @@ extern float Light[8];
 extern float MaterialDB[MAX_OBJECTS][19];
 
 float RGBChannels[3];
-void ReadByteFile();
+// void ReadByteFile();
 void populateDefaultScene();
 void populateScene();
 void draw(float ray[6], int recursion);
 
 /* Function to read the byte file */
+/*
 void ReadByteFile(Scene *scene, Light lightSrc, MathStat *m, FuncStat *f)
 {
     fixedp minx = 0x7FFFFFFF, miny = 0x7FFFFFFF, minz = 0x7FFFFFFF, maxx = 0x80000000, maxy = 0x80000000, maxz = 0x80000000;
@@ -331,17 +325,17 @@ void ReadByteFile(Scene *scene, Light lightSrc, MathStat *m, FuncStat *f)
     printf("Total number of triangles: %lld\n\n", TotalTriangles);
     fclose(fp);
 }
-
+*/
 /* Populate a scene with set items */
-void populateDefaultScene(Scene *scene, Light lightSrc, MathStat *m, FuncStat *f)
+void populateDefaultScene()
 {
-    Object cube, planeBase, planeLeft, planeRight, planeTop, planeBack, mirrCube;
-    Material redGlass, nonreflBlue, nonreflGreen, nonreflPurple, mirror;
-    Vector red = int2Vector(RED);
-    Vector blue = int2Vector(BLUE);
-    Vector green = int2Vector(GREEN);
-    Vector purple = int2Vector(PURPLE);
-    Vector white = int2Vector(WHITE);
+    int i;
+    int red[3] = {255, 0, 0};
+    int green[3] = {0, 255, 0};
+    int blue[3] = {0, 0, 255};
+    int purple[3] = {140, 0, 255};
+    int white[3] = {255, 255, 255};
+    float transMat[16], tempMat[16];
     
     // Set material types
     //setMaterial(*matObj, light, Vector colour, fixedp ambiance, fixedp diffusivity, fixedp specular, fixedp shininess, fixedp reflectivity, fixedp opacity, fixedp refractivity)
@@ -382,13 +376,17 @@ void populateDefaultScene(Scene *scene, Light lightSrc, MathStat *m, FuncStat *f
 
 /* The populateScene function calls the ReadByteFile function. This is here mainly
    for compatibility with older generations of the OFconstruct header file.        */
-void populateScene(Scene *scene, Light lightSrc, MathStat *m, FuncStat *f)
+void populateScene()
 {
     // Should the default scene be loaded?
+    /*
     if (inputFile[0] == '\0')
-        populateDefaultScene(scene, lightSrc, m, f); // Pass inputs to the default scene.
+    */
+        populateDefaultScene(); // Pass inputs to the default scene.
+    /*
     else
         ReadByteFile(scene, lightSrc, m, f); // Pass all inputs to the byte file reader.
+    */
 }
 
 /* And then the standard draw function that's been previously constructed */
