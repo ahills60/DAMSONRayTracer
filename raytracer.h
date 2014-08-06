@@ -3,6 +3,7 @@
 // Output image dimensions
 #define IMAGE_WIDTH                             1024
 #define IMAGE_HEIGHT                            768
+#define RECURSIONS                              0
 
 // Node information
 #define NODE_COUNT                              1
