@@ -9,6 +9,31 @@
 // Include fixed point maths
 #include "fpmath.h"
 
+void setUVCoord(float u, float v);
+void setVector(float x, float y, float z);
+float deg2rad(float deg);
+void vecMult(float u[3], float v[3]);
+float dot(float u[3], float v[3]);
+void cross(float u[3], float v[3]);
+void scalarVecMult(float a, float u[3]);
+void scalarVecDiv(float a, float u[3]);
+void vecAdd(float u[3], float v[3]);
+void vecSub(float u[3], float v[3]);
+void negVec(float u[3]);
+void vecLength(float u[3]);
+void vecNormalised(float u[3]);
+void matVecMult(float F[16], float u[3]);
+void matMult(float F[16], float G[16]);
+void genIdentMatrix();
+void genXRotateMat(float a);
+void genYRotateMat(float a);
+void genZRotateMat(float a);
+void getRotateMatrix(float ax, float ax, float az);
+void genTransMatriix(float tx, float ty, float tz);
+void genScaleMatrix(float sx, float sy, float sz);
+void setTriangle(int objectIndex, int triangleIndex, float u[3], float v[3], float w[3]);
+void setCamera(float location[3], float view[3], float fov, int width, int height);
+
 // Define some constants
 #define EPS        0x6 // 512 // 6 // 31 // Was 0.00001
 

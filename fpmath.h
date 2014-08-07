@@ -266,8 +266,8 @@ float fp_pow(float a, float b)
 {
     float output;
     
-    if (a <= 0)
-        return 0;
+    if (a <= 0.0)
+        return 0.0;
     
     output = fp_exp(fp_log(a) * b));
     

@@ -25,7 +25,7 @@ void setMaterial(int materialIdx, float colour[3], float ambiance, float diffusi
     MaterialDB[materialIdx][MaterialReflectivity] = reflectivity;
     MaterialDB[materialIdx][MaterialOpacity] = opacity;
     MaterialDB[materialIdx][MaterialRefractivity] = refractivity;
-    if (refractivity == 0.0)
+    if ((void) refractivity == 0)
     {
         MaterialDB[materialIdx][MaterialInverseRefractivity] = 1.0;
         MaterialDB[materialIdx][MaterialSquareInverseRefractivity] = 1.0;

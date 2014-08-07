@@ -1,9 +1,11 @@
 // Prototypes:
 float triangleIntersection(float ray[6], int triangleIdx, float currentDistance);
 void objectIntersection(float ray[6], int objectIdx);
+void sceneIntersection(float ray[6]);
 float traceShadow(float localHitData[18], float direction[3]);
 void reflectRay(float localHitData[18]);
 void refractRay(float localHitData[18], float inverserefreactivity, float squareinverserefractivity);
+void createRay(int x, int y);
 
 // Modulo vector:
 external int DomMod[5];
