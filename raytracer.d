@@ -98,6 +98,8 @@ int main(void)
     // Now populate the scene.
     populateScene();
     
+    printf("Scene dimensions: %i %i\n", IMAGE_HEIGHT, IMAGE_WIDTH);
+    
     // Begin main task:
     for (y = 0; y < IMAGE_HEIGHT; y += 1)
     {
