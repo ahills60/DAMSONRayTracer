@@ -1,61 +1,62 @@
 /* Implements basic shapes for the ray tracer */
 
-extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
-extern int noObjects;
-extern int noTriangles[MAX_OBJECTS];
-
-// Result storage
-extern float ResultStore[16];
+// extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
+// extern int noObjects;
+// extern int noTriangles[MAX_OBJECTS];
+//
+// // Result storage
+// extern float ResultStore[16];
 
 // Prototype these functions:
 void createCube(int objectIndex, float size, float transMat[16]);
-void createPlaneXZ(objectIndex, float size, float transMat[16]);
+void createPlaneXZ(int objectIndex, float size, float transMat[16]);
 
 void createCube(int objectIndex, float size, float transMat[16])
 {
     float u[3], v[3], w[3];
     float minVal, maxVal;
-    int i, j;
+    int i, j, isize = bitset(size);
     
-    int pattern = {0, 0, 0, // T1
-                   1, 0, 0,
-                   1, 1, 0,
-                   1, 1, 0, // T2
-                   0, 1, 0,
-                   0, 0, 0,
-                   1, 0, 0, // T3
-                   1, 0, 1,
-                   1, 1, 1,
-                   1, 1, 1, // T4
-                   1, 1, 0,
-                   1, 0, 0,
-                   1, 0, 1, // T5
-                   0, 0, 1,
-                   0, 1, 1,
-                   0, 1, 1, // T6
-                   1, 1, 1,
-                   1, 0, 1,
-                   0, 0, 1, // T7
-                   0, 0, 0,
-                   0, 1, 0,
-                   0, 1, 0, // T8
-                   0, 1, 1,
-                   0, 0, 1,
-                   0, 0, 0, // T9
-                   0, 0, 1,
-                   1, 0, 1,
-                   1, 0, 1, // T10
-                   1, 0, 0,
-                   0, 0, 0,
-                   0, 1, 0, // T11
-                   1, 1, 0,
-                   1, 1, 1,
-                   1, 1, 1, // T12
-                   0, 1, 1,
-                   0, 1, 0};
+    int pattern[108] = {0, 0, 0, // T1
+                        1, 0, 0,
+                        1, 1, 0,
+                        1, 1, 0, // T2
+                        0, 1, 0,
+                        0, 0, 0,
+                        1, 0, 0, // T3
+                        1, 0, 1,
+                        1, 1, 1,
+                        1, 1, 1, // T4
+                        1, 1, 0,
+                        1, 0, 0,
+                        1, 0, 1, // T5
+                        0, 0, 1,
+                        0, 1, 1,
+                        0, 1, 1, // T6
+                        1, 1, 1,
+                        1, 0, 1,
+                        0, 0, 1, // T7
+                        0, 0, 0,
+                        0, 1, 0,
+                        0, 1, 0, // T8
+                        0, 1, 1,
+                        0, 0, 1,
+                        0, 0, 0, // T9
+                        0, 0, 1,
+                        1, 0, 1,
+                        1, 0, 1, // T10
+                        1, 0, 0,
+                        0, 0, 0,
+                        0, 1, 0, // T11
+                        1, 1, 0,
+                        1, 1, 1,
+                        1, 1, 1, // T12
+                        0, 1, 1,
+                        0, 1, 0};
     
     // Halve the size:
-    size = size >> 1;
+    isize = isize >> 1;
+    size = bitset(isize);
     
     // Points will always be at the extremes:
     minVal = -size;
@@ -89,12 +90,12 @@ void createPlaneXZ(int objectIndex, float size, float transMat[16])
     int i, j;
     
     // Create a pattern
-    int pattern = {1, 1,
-                   1, 0,
-                   0, 0,
-                   1, 1,
-                   0, 1,
-                   0, 0};
+    int pattern[12] = {1, 1,
+                       1, 0,
+                       0, 0,
+                       1, 1,
+                       0, 1,
+                       0, 0};
     
     
     

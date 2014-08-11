@@ -8,25 +8,14 @@
  *      Author: andrew
  */
 
-#include "fpmath.h"
-#include "datatypes.h"
-#include "rays.h"
-#include "lighting.h"
-#include "objects.h"
-#include "textures.h"
-#include "shapes.h"
+// extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
+// extern float HitData[18];
+// extern float ResultStore[16];
+// extern int noObjects;
+// extern int noTriangles[MAX_OBJECTS];
+// extern float Light[8];
+// extern float MaterialDB[MAX_OBJECTS][19];
 
-Texture *Textures;
-
-extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
-extern float HitData[18];
-extern float ResultStore[16];
-extern int noObjects;
-extern int noTriangles[MAX_OBJECTS];
-extern float Light[8];
-extern float MaterialDB[MAX_OBJECTS][19];
-
-float RGBChannels[3];
 // void ReadByteFile();
 void populateDefaultScene();
 void populateScene();
@@ -449,7 +438,7 @@ void populateScene()
 void draw(float ray[6], int recursion)
 {
     float outputColour[3], reflectiveColour[3], refractiveColour[3], textureColour[3];
-    float vector[3], hitLocation[3], localHitData[18];
+    float vector[3], hitLocation[3], localHitData[18], lightDirection[3];
     float colour[3], alpha;
     float reflection, refraction;
     float newRay[6], source[3];
@@ -474,7 +463,7 @@ void draw(float ray[6], int recursion)
             localHitData[i] = HitData[i];
         
         // Determine whether the light vector describes the direction or the position:
-        if (Light[LightGlobalFlag])
+        if ((void) Light[LightGlobalFlag] != (void) 0)
             for (i = 0; i < 3; i +=1)
                 lightDirection[i] = Light[LightVector + i];
         else

@@ -1,5 +1,5 @@
 // Prototypes:
-float triangleIntersection(float ray[6], int triangleIdx, float currentDistance);
+float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float currentDistance);
 void objectIntersection(float ray[6], int objectIdx);
 void sceneIntersection(float ray[6]);
 float traceShadow(float localHitData[18], float direction[3]);
@@ -7,29 +7,29 @@ void reflectRay(float localHitData[18]);
 void refractRay(float localHitData[18], float inverserefreactivity, float squareinverserefractivity);
 void createRay(int x, int y);
 
-// Modulo vector:
-external int DomMod[5];
-
-// External objects
-extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
-extern float HitData[18];
-extern float ResultStore[16];
-extern int noObjects;
-extern int noTriangles[MAX_OBJECTS];
-extern float Light[8];
-extern float Camera[22];
+// // Modulo vector:
+// external int DomMod[5];
+//
+// // External objects
+// extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
+// extern float HitData[18];
+// extern float ResultStore[16];
+// extern int noObjects;
+// extern int noTriangles[MAX_OBJECTS];
+// extern float Light[8];
+// extern float Camera[22];
 
 
 
 float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float currentDistance)
 {
     int ku, kv;
-    float dk, du, dv, ok, ou, ov, denom, dist, hu, hv, au, av, numer, beta, gamma, cmpopt;
+    float dk, du, dv, ok, ou, ov, denom, dist, hu, hv, au, av, numer, beta, gamma, cmpopt, tempFl, tempFl2;
     
-    int shift1, msb1, msb2, bitdiff1, biteval;
-    float tempVar1, tempVar2;
+    int shift1, msb1, msb2, bitdiff1, biteval, denomi, numeri;
+    int tempVar1, tempVar2;
     
-    int dominantAxisIdx = ObjectDB[objectIdx][triangleIdx][TriangleDominantAxisIdx] >> 16;
+    int dominantAxisIdx = bitset(ObjectDB[objectIdx][triangleIdx][TriangleDominantAxisIdx]);
     
     // Determine if an error occurred when preprocessing this triangle:
     
@@ -56,14 +56,17 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
         return 0;
     numer = ObjectDB[objectIdx][triangleIdx][TriangleNDDom] - ok - (ObjectDB[objectIdx][triangleIdx][TriangleNUDom] * ou) - (ObjectDB[objectIdx][triangleIdx][TriangleNVDom] * ov);
     
-    if (numer == 0)
+    denomi = bitset(denom);
+    numeri = bitset(numer);
+    
+    if (numeri == 0)
         return 0;
     // Do a sign check
-    if ((denom & 0x80000000) ^ (numer & 0x80000000))
+    if ((denomi & 0x80000000) ^ (numeri & 0x80000000))
         return 0;
     
     // Locate the MSB of the numerator:
-    tempVar1 = fabs(numer);
+    tempVar1 = bitset(fabs(numer));
     msb1 = 0;
     if (tempVar1 & 0xFFFF0000)
     {
@@ -94,7 +97,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     msb1 += tempVar1;
     
     // Then do the same for the denominator:
-    tempVar1 = fabs(denom);
+    tempVar1 = bitset(fabs(denom));
     msb2 = 0;
     if (tempVar1 & 0xFFFF0000)
     {
@@ -138,9 +141,13 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     }
     else
     {
-        dist = numer / (denom << bitdiff1);
+        tempFl = bitset(denomi << bitdiff1);
+        dist = numer / tempFl;
         // Early exit:
-        if ((currentDistance >> bitdiff1) < dist)
+        tempVar1 = bitset(currentDistance);
+        tempVar1 >>= bitdiff1;
+        tempFl = bitset(tempVar1);
+        if (tempFl < dist)
             return 0;
     }
     
@@ -156,8 +163,20 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     }
     else
     {
-        hu = (ou >> bitdiff1) + (dist * du) - (au >> bitdiff1);
-        hv = (ov >> bitdiff1) + (dist * dv) - (av >> bitdiff1);
+        tempVar1 = bitset(ou);
+        tempVar2 = bitset(au);
+        tempVar1 >>= bitdiff1;
+        tempVar2 >>= bitdiff1;
+        tempFl = bitset(tempVar1);
+        tempFl2 = bitset(tempVar2);
+        hu = tempFl + (dist * du) - tempFl2;
+        tempVar1 = bitset(ov);
+        tempVar2 = bitset(av);
+        tempVar1 >>= bitdiff1;
+        tempVar2 >>= bitdiff1;
+        tempFl = bitset(tempVar1);
+        tempFl2 = bitset(tempVar2);
+        hv = tempFl + (dist * dv) - tempFl2;
     }
     
     beta = (hv * ObjectDB[objectIdx][triangleIdx][TriangleBUDom]) + (hu * ObjectDB[objectIdx][triangleIdx][TriangleBVDom]);
@@ -242,7 +261,7 @@ void objectIntersection(float ray[6], int objectIdx)
         HitData[HitDataMu] = Mu;
         HitData[HitDataMv] = Mv;
         HitData[HitDatabitshift] = nearestbitshift;
-        HitData[HitDataTriangleIndex] = nearestIdx;
+        HitData[HitDataTriangleIndex] = bitset(nearestIdx);
         HitData[HitDataObjectIndex] = objectIdx;
     }
     else
@@ -260,7 +279,7 @@ void sceneIntersection(float ray[6])
     {
         objectIntersection(ray, n);
         // Check to see if this hit is worth keeping. If so, take a copy
-        if (HitData[HitDataDistance] > 0 && HitDataDistance[HitDataDistance] < nearestHit[HitDataDistance])
+        if (HitData[HitDataDistance] > 0 && HitData[HitDataDistance] < nearestHit[HitDataDistance])
             for (i = 0; i < 18; i += 1)
                 nearestHit[i] = HitData[i];
     }
@@ -293,7 +312,7 @@ float traceShadow(float localHitData[18], float direction[3])
         for (n = 0; n < noTriangles[m]; n += 1)
         {
             // Ensure there are no self-intersections
-            if (m == localHitData[HitDataObjectIndex] && n == localHitData[HitDataTriangleIndex])
+            if ((void) m == (void) localHitData[HitDataObjectIndex] && (void) n == (void) localHitData[HitDataTriangleIndex])
                 continue;
             
             if (triangleIntersection(ray, m, n, tempDist) > (EPS << 1))
@@ -307,8 +326,8 @@ float traceShadow(float localHitData[18], float direction[3])
 
 void reflectRay(float localHitData[18])
 {
-    float direction[3], normal[3];
-    int i;
+    float direction[3], normal[3], tempFl;
+    int i, tempVar;
     
     // Populate the direction vector:
     for (i = 0; i < 3; i += 1)
@@ -324,7 +343,11 @@ void reflectRay(float localHitData[18])
     for (i = 0; i < 3; i += 1)
         direction[i] = ResultStore[i];
     
-    scalarVecMult(dot(normal, direction) << 1, normal);
+    tempFl = bitset(dot(normal, direction));
+    tempVar = bitset(tempFl);
+    tempVar <<= 1;
+    tempFl = bitset(tempVar);
+    scalarVecMult(tempFl, normal);
     
     for (i = 0; i < 3; i += 1)
     {
@@ -387,12 +410,14 @@ void refractRay(float localHitData[18], float inverserefreactivity, float square
 
 void createRay(int x, int y)
 {
-    float sx, sy, shorizontal[3], svertical[3], sview[3];
+    float sx = bitset(x), sy = bitset(y), shorizontal[3], svertical[3], sview[3];
     int i;
     
     // First scale x and scale y:
-    sx = (((float) x) * Camera[CameraDFoVARDW]) - Camera[CameraFoVAR];
-    sy = (((float) y) * Camera[CameraDFoVDH]) - Camera[FoV];
+    sx *= Camera[CameraDFoVARDW];
+    sx -= Camera[CameraFoVAR];
+    sy *= Camera[CameraDFoVDH];
+    sy -= Camera[CameraFoV];
     
     // Next, scale horizontal and vertical.
     for (i = 0; i < 3; i += 1)

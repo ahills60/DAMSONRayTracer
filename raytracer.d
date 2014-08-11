@@ -1,32 +1,23 @@
 /* This is the ray tracer software written in DAMSON */
 
-#include "raytracer.h"
-#include "fpmath.h"
-#include "datatypes.h"
-#include "rays.h"
-#include "lighting.h"
-#include "objects.h"
-#include "shapes.h"
-#include "textures.h"
-#include "construct.h"
-
 #node raytracernode
 
+#include "raytracer.h"
 /* Constants to determine which pixels to process */
-int PIXEL_OFFSET = 0;
+// int PIXEL_OFFSET = 0;
 
-int SpaceCounter = 1;
+// int SpaceCounter = 1;
 
-// For jobs received externally
-int ExternalSemaphore = 1;
-float ExternalCoordinates[MAX_COORDS][3];
-int ExternalCoordinateTimes[MAX_COORDS][3];
-int ExternalSource[MAX_COORDS];
-int ExternalComplete[MAX_COORDS];
-int noExternalCoordinates = 0;
-
-// Flag for termination.
-int Terminate = 0;
+// // For jobs received externally
+// int ExternalSemaphore = 1;
+// float ExternalCoordinates[MAX_COORDS][3];
+// int ExternalCoordinateTimes[MAX_COORDS][3];
+// int ExternalSource[MAX_COORDS];
+// int ExternalComplete[MAX_COORDS];
+// int noExternalCoordinates = 0;
+//
+// // Flag for termination.
+// int Terminate = 0;
 
 // Result storage
 float ResultStore[16];
@@ -61,6 +52,16 @@ float Camera[22];
 // Modulo vector:
 int DomMod[5] = {0, 1, 2, 0, 1};
 
+float RGBChannels[3] = {0.0, 0.0, 0.0};
+
+#include "fpmath.h"
+#include "datatypes.h"
+#include "rays.h"
+#include "lighting.h"
+#include "objects.h"
+#include "shapes.h"
+#include "textures.h"
+#include "construct.h"
 // Prototypes
 /*
 void datainterrupt(int, int, int, int);
@@ -72,6 +73,8 @@ int main(void)
 {
     float clocation[3] = {1.0, 2.0, 4.0}, cTheta = 0x0001C4A8, cPhi = 0xFFFE6DDE, cview[3], ray[6];
     int i, x, y;
+    
+    printf("Initialising light source...\n");
     
     // Set the light source:
     Light[LightVector + 0] = -1.0;
@@ -89,12 +92,15 @@ int main(void)
     // Global Lighting flag:
     Light[LightGlobalFlag] = 0;
     
+    printf("Initialising camera...\n");
     // Now initialise the camera:
     cview[0] = fp_sin(cTheta) * fp_cos(cPhi);
     cview[1] = fp_cos(cTheta);
     cview[2] = fp_sin(cTheta) * fp_sin(cPhi);
+    printf("Setting camera options...\n");
     setCamera(clocation[3], cview, 45.0, IMAGE_WIDTH, IMAGE_HEIGHT);
     
+    printf("Populating scene...\n");
     // Now populate the scene.
     populateScene();
     
@@ -218,5 +224,5 @@ void EnterExternalData(int source, int PortNumber, int Data, int RxTime)
 #alias raytracernode 1
     // clockinterrupt: 0
      // datainterrupt: 2
-     PIXEL_OFFSET = 0;
+     // PIXEL_OFFSET = 0;
        

@@ -4,31 +4,44 @@ void getTexel(float localHitData[18], float uv[2]);
 void getColour(float localHitData[18]);
 
 // External variables
-extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
-extern float MaterialDB[MAX_OBJECTS][19];
-extern float ResultStore[16];
-extern int TextureDB[MAX_TEXTURES][4];
-extern int RenderTransparency;
+// extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
+// extern float MaterialDB[MAX_OBJECTS][19];
+// extern float ResultStore[16];
+// extern int TextureDB[MAX_TEXTURES][4];
+// extern int RenderTransparency;
 
 void getTexel(float localHitData[18], float uv[2])
 {
     float c1[3], c2[3], c3[3], c4[3];
-    float URem, VRem, alpha;
-    int b1, b2, b3, b4;
+    float URem, VRem, alpha, uvf0, uvf1;
+    int b1, b2, b3, b4, uv0 = bitset(uv[0]), uv1 = bitset(uv[1]);
     float a1, a2, a3, a4;
     int TextUPos, TextVPos, i;
     
     // Locate the pixel intersection
-    uv[0] = ((0x03E80000 + uv[0]) & 0x0000FFFF) * (TextureDB[MaterialDB[localHitData[HitDataObjectIndex]][MaterialTextureIndex]][TextureWidth] << 16);
-    uv[1] = ((0x03E80000 + uv[1]) & 0x0000FFFF) * (TextureDB[MaterialDB[localHitData[HitDataObjectIndex]][MaterialTextureIndex]][TextureHeight] << 16);
+    uv0 += 0x03E80000;
+    uv0 &= 0x0000FFFF;
+    uv1 += 0x03E80000;
+    uv1 &= 0x0000FFFF;
+    uvf0 = bitset(uv0);
+    uvf1 = bitset(uv1);
+    
+    uv[0] = uvf0 * (TextureDB[MaterialDB[localHitData[HitDataObjectIndex]][MaterialTextureIndex]][TextureWidth] << 16);
+    uv[1] = uvf1 * (TextureDB[MaterialDB[localHitData[HitDataObjectIndex]][MaterialTextureIndex]][TextureHeight] << 16);
+    
+    uv0 = bitset(uv[0]);
+    uv1 = bitset(uv[1]);
     
     // Get the whole number pixel value
-    TextUPos = uv[0] >> 16;
-    TextVPos = uv[1] >> 16;
+    TextUPos = uv0 >> 16;
+    TextVPos = uv1 >> 16;
     
+    uv0 &= 0x0000FFFF;
+    uv1 &= 0x0000FFFF;
+         
     // Compute weights from the fractional part
-    URem = uv[0] & 0x0000FFFF;
-    VRem = uv[1] & 0x0000FFFF;
+    URem = bitset(uv0);
+    VRem = bitset(uv1);
     
     // Border checks:
     // Offset (0, 0)
@@ -53,9 +66,9 @@ void getTexel(float localHitData[18], float uv[2])
     a1 = (1 - URem) * (1 - VRem);
     a2 = URem * (1 - VRem);
     a3 = (1 - URem) * VRem;
-    a4 = URem * Vrem;
+    a4 = URem * VRem;
     
-    for (i = 0, i < 3; i += 1)
+    for (i = 0; i < 3; i += 1)
     {
         // Scaled sum of components:
         ResultStore[i] = a1 * c1[i] + a2 * c2[i] + a3 * c3[i] + a4 * c4[i];
@@ -65,7 +78,7 @@ void getTexel(float localHitData[18], float uv[2])
     }
     
     // Now compute the alpha value:
-    if (TextureDB[MaterialDB[localHitData[HitDataObjectIndex]][MaterialTextureIndex]][TextureAlpha] >= 0 && RenderTransparency)
+    if (TextureDB[MaterialDB[localHitData[HitDataObjectIndex]][MaterialTextureIndex]][TextureAlpha] >= 0 && 0)
     {
         // Extract alpha channels
         writesdram(TextureDB[MaterialDB[localHitData[HitDataObjectIndex]][MaterialTextureIndex]][TextureMemStart] + 3 + (b1 * 4), c1[1], 1);

@@ -7,7 +7,6 @@
  *      Author: andrew
  */
 // Include fixed point maths
-#include "fpmath.h"
 
 void setUVCoord(float u, float v);
 void setVector(float x, float y, float z);
@@ -20,32 +19,33 @@ void scalarVecDiv(float a, float u[3]);
 void vecAdd(float u[3], float v[3]);
 void vecSub(float u[3], float v[3]);
 void negVec(float u[3]);
-void vecLength(float u[3]);
+float vecLength(float u[3]);
 void vecNormalised(float u[3]);
 void matVecMult(float F[16], float u[3]);
 void matMult(float F[16], float G[16]);
-void genIdentMatrix();
+void genIdentMat();
 void genXRotateMat(float a);
 void genYRotateMat(float a);
 void genZRotateMat(float a);
-void getRotateMatrix(float ax, float ax, float az);
-void genTransMatriix(float tx, float ty, float tz);
+void getRotateMatrix(float ax, float ay, float az);
+void genTransMatrix(float tx, float ty, float tz);
 void genScaleMatrix(float sx, float sy, float sz);
 void setTriangle(int objectIndex, int triangleIndex, float u[3], float v[3], float w[3]);
+void scalarUVMult(float a, float u[2]);
 void setCamera(float location[3], float view[3], float fov, int width, int height);
 
 // Define some constants
 #define EPS        0x6 // 512 // 6 // 31 // Was 0.00001
 
-extern int ResultStore[16];
-extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
-extern int noObjects;
-extern int noTriangles[MAX_OBJECTS];
-// Modulo vector:
-extern int DomMod[5];
-
-// Camera vector
-extern float Camera[22];
+// extern int ResultStore[16];
+// extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
+// extern int noObjects;
+// extern int noTriangles[MAX_OBJECTS];
+// // Modulo vector:
+// extern int DomMod[5];
+//
+// // Camera vector
+// extern float Camera[22];
 
 /*
 // UV coordinate structure
@@ -225,17 +225,17 @@ float vecLength(float u[3])
 void vecNormalised(float u[3])
 {
     float tempVar = u[0] * u[0] + u[1] * u[1] + u[2] * u[2];
-    if (tempVar == 0)
+    if ((void) tempVar == (void) 0)
     {
         ResultStore[0] = u[0];
         ResultStore[1] = u[1];
         ResultStore[2] = u[2];
     }
     else // Below function calls will populate ResultStore
-        if (tempVar == 1)
+        if ((void) tempVar == (void) 1)
             scalarVecMult(0x1000000, u); // Equivalent of 256 as 1 / sqrt(1.52E-5) is 256
         else
-            scalarVecMult(fp_sqrt(fp_fp1 / tempVar), u);
+            scalarVecMult(fp_sqrt(1.0 / tempVar), u);
             // return scalarVecMult(fp_Flt2FP(1. / sqrtf(fp_FP2Flt(tempVar))), u, m, f);
             // return scalarVecMult(fp_sqrt(fp_div(fp_fp1, tempVar)), u, m, f);
     /*
@@ -267,16 +267,16 @@ void matMult(float F[16], float G[16])
 {
     int m, n, p, n4;
     
-    for (m = 0; m < 4; m++)
+    for (m = 0; m < 4; m += 1)
     {
-        for (n = 0; n < 4; n++)
+        for (n = 0; n < 4; n += 1)
         {
             n4 = 4 * n;
             // Initialise new matrix first
             ResultStore[n4 + m] = 0;
             
             // Now populate with the multiplication
-            for (p = 0; p < 4; p++)
+            for (p = 0; p < 4; p += 1)
                  ResultStore[n4 + m] += F[n4 + p] * G[p * 4 + m]; // F[n][p] * G[p][m];
         }
     }
@@ -302,9 +302,13 @@ void genXRotateMat(float a)
     float cosa = fp_cos(deg2rad(a)), sina = fp_sin(deg2rad(a));
     
     float m[16] = {1, 0, 0, 0,
-                   0, cosa, -sina, 0,
-                   0, sina, cosa, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
                    0, 0, 0, 1};
+    m[5] = cosa;
+    m[6] = -sina;
+    m[9] = sina;
+    m[10] = cosa;
     // Copy the array to the results store.
     for (i = 0; i < 16; i += 1)
         ResultStore[i] = m[i];
@@ -314,28 +318,37 @@ void genXRotateMat(float a)
 void genYRotateMat(float a)
 {
     int i;
-    float cosa = cos(deg2rad(a)), sina = sin(deg2rad(a));
+    float cosa = fp_cos(deg2rad(a)), sina = fp_sin(deg2rad(a));
     
-    float m[16] = {cosa, 0, sina, 0,
+    float m[16] = {0, 0, 0, 0,
                    0, 1, 0, 0,
-                   -sina, 0, cosa, 0,
+                   0, 0, 0, 0,
                    0, 0, 0, 1};
+    
+    m[0] = cosa;
+    m[2] = sina;
+    m[8] = -sina;
+    m[10] = cosa;
     // Copy the array to the results store.
     for (i = 0; i < 16; i += 1)
         ResultStore[i] = m[i];
 }
 
 /* Create a rotation matrix for Z-axis rotations */
-void genZRotateMat(fixedp a)
+void genZRotateMat(float a)
 {
     int i;
-    float cosa = cos(deg2rad(a)), sina = sin(deg2rad(a));
+    float cosa = fp_cos(deg2rad(a)), sina = fp_sin(deg2rad(a));
     
-    float m[16] = {cosa, -sina, 0, 0,
-                   sina, cosa, 0, 0,
+    float m[16] = {0, 0, 0, 0,
+                   0, 0, 0, 0,
                    0, 0, 1, 0,
                    0, 0, 0, 1};
-                   
+    
+    m[0] = cosa;
+    m[1] = -sina;
+    m[4] = sina;
+    m[5] = cosa;
     // Copy the array to the results store.
     for (i = 0; i < 16; i += 1)
         ResultStore[i] = m[i];
@@ -362,11 +375,14 @@ void getRotateMatrix(float ax, float ay, float az)
 void genTransMatrix(float tx, float ty, float tz)
 {
     int i;
-    float m[16] = {1, 0, 0, tx,
-                   0, 1, 0, ty,
-                   0, 0, 1, tz,
+    float m[16] = {1, 0, 0, 0,
+                   0, 1, 0, 0,
+                   0, 0, 1, 0,
                    0, 0, 0, 1};
-                   
+    
+    m[3] = tx;
+    m[7] = ty;
+    m[11] = tz;
     // Copy the array to the results store.
     for (i = 0; i < 16; i += 1)
         ResultStore[i] = m[i];
@@ -375,11 +391,14 @@ void genTransMatrix(float tx, float ty, float tz)
 void genScaleMatrix(float sx, float sy, float sz)
 {
     int i;
-    float m[16] = {sx, 0, 0, 0,
-                   0, sy, 0, 0,
-                   0, 0, sz, 0,
+    float m[16] = {0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
                    0, 0, 0, 1};
                    
+    m[0] = sx;
+    m[5] = sy;
+    m[10] = sz;
    // Copy the array to the results store.
     for (i = 0; i < 16; i += 1)
         ResultStore[i] = m[i];
@@ -387,9 +406,9 @@ void genScaleMatrix(float sx, float sy, float sz)
 
 void setTriangle(int objectIndex, int triangleIndex, float u[3], float v[3], float w[3])
 {
-    int uIdx, vIdx, i;
+    int uIdx, vIdx, i, domIdx;
     float dk, du, dv, bu, bv, cu, cv, coeff;
-    float vmu[3], wmu[3], NormDom[3] fabsNormDom[3];
+    float vmu[3], wmu[3], NormDom[3], fabsNormDom[3];
     
     for (i = 0; i < 3; i += 1)
     {
@@ -422,23 +441,26 @@ void setTriangle(int objectIndex, int triangleIndex, float u[3], float v[3], flo
     if (fabsNormDom[0] > fabsNormDom[1])
     {
         if (fabsNormDom[0] > fabsNormDom[2])
-            ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] = 0;
+            domIdx = 0;
         else
-            ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] = 2;
+            domIdx = 2;
     }
     else
     {
-        if (fabsNormDom[1] > fabsNormDom[2]))
-            ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] = 1;
+        if (fabsNormDom[1] > fabsNormDom[2])
+            domIdx = 1;
         else
-            ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] = 2;
+            domIdx = 2;
     }
+    
+    ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] = bitset(domIdx);
+    
     // Use the array to quickly resolve modulo.
-    uIdx = DomMod[ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] + 1];
-    vIdx = DomMod[ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] + 2];
+    uIdx = DomMod[domIdx + 1];
+    vIdx = DomMod[domIdx + 2];
     
     // This should make calculations easier...
-    dk = (ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] == 1) ? NormDom[1] : ((ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx]== 2) ? NormDom[2] : NormDom[0]);
+    dk = (domIdx == 1) ? NormDom[1] : (( domIdx == 2) ? NormDom[2] : NormDom[0]);
     du = (uIdx == 1) ? NormDom[1] : ((uIdx == 2) ? NormDom[2] : NormDom[0]);
     dv = (vIdx == 1) ? NormDom[1] : ((vIdx == 2) ? NormDom[2] : NormDom[0]);
     
@@ -460,14 +482,16 @@ void setTriangle(int objectIndex, int triangleIndex, float u[3], float v[3], flo
     }
     */
     // Now precompute components for Barycentric intersection
-    dk = (dk == 0) ? 1 : dk;
+    if ((void) dk == (void) 0)
+        dk = 1.0;
     ObjectDB[objectIndex][triangleIndex][TriangleNUDom] = du / dk;
     ObjectDB[objectIndex][triangleIndex][TriangleNVDom] = dv / dk;
     ObjectDB[objectIndex][triangleIndex][TriangleNDDom] = dot(NormDom, u) / dk;
     
     // First line of the equation:
     coeff = (bu * cv) - (bv * cu);
-    coeff = (coeff == 0) ? 1 : coeff;
+    if ((void) coeff == (void) 0)
+        coeff = 1.0;
     ObjectDB[objectIndex][triangleIndex][TriangleBUDom] = bu / coeff;
     ObjectDB[objectIndex][triangleIndex][TriangleBVDom] = -(bv / coeff);
     // Second line of the equation:
@@ -576,16 +600,16 @@ void setPrecompTriangle(Triangle *triangle, Vector u, Vector v, Vector w, UVCoor
     (*triangle).CUDom = CUDom;
     (*triangle).CVDom = CVDom;
 }
-
+*/
 // Multiple a UV coordinate by a scalar value
-void scalarUVMult(float a, float u[2], MathStat *m)
+void scalarUVMult(float a, float u[2])
 {
     int i;
     
     for (i = 0; i < 2; i += 1)
         ResultStore[i] = a * u[i];
 }
-
+/*
 // Add two UV coordinates
 void uvAdd(float a[2], float b[2], MathStat *m)
 {
@@ -607,6 +631,8 @@ void setCamera(float location[3], float view[3], float fov, int width, int heigh
 {
     float vertical[3], horizontal[3], up[3] = {0, 1.0, 0}, ar, fovh, dfovardw, fovar, dfovdh;
     int i, temp;
+    
+    printf("Setting camera with dimensions %i x %i\n", width, height);
     
     cross(view, up);
     for (i = 0; i < 3; i += 1)
@@ -634,6 +660,8 @@ void setCamera(float location[3], float view[3], float fov, int width, int heigh
     
     dfovdh = deg2rad(fov) / (float) height;
     
+    printf("About to set values...\n");
+    
     // Now populate the camera vector
     for (i = 0; i < 3; i += 1)
     {        
@@ -643,11 +671,12 @@ void setCamera(float location[3], float view[3], float fov, int width, int heigh
         Camera[CameraHorizontal + i] = horizontal[i];
         Camera[CameraVertical + i] = vertical[i];
     }
-    Camera[CameraFOV] = fovh;
+    printf("Setting more values...\n");
+    Camera[CameraFoV] = fovh;
     Camera[CameraAR] = ar;
     Camera[CameraHeight] = (float) height;
     Camera[CameraWidth] = (float) width;
-    Camera[CameraDFoVDW] = dfovardw;
+    Camera[CameraDFoVARDW] = dfovardw;
     Camera[CameraFoVAR] = fovar;
     Camera[CameraDFoVDH] = dfovdh;
 }

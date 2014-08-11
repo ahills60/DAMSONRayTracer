@@ -6,15 +6,15 @@
 #define RECURSIONS                              0
 
 // Node information
-#define NODE_COUNT                              1
-#define PIXEL_JUMP                              NODE_COUNT
-#define MAX_THREADS                             10
-// #define MAX_COORDS                              20
-#define STACK_SIZE                              500
+// #define NODE_COUNT                              1
+// #define PIXEL_JUMP                              NODE_COUNT
+// #define MAX_THREADS                             10
+// // #define MAX_COORDS                              20
+// #define STACK_SIZE                              500
 
-#define MAX_OBJECTS                             200
-#define MAX_TRIANGLES                           10000
-#define MAX_TEXTURES                            100
+#define MAX_OBJECTS                             8
+#define MAX_TRIANGLES                           30
+#define MAX_TEXTURES                            8
 
 // Rays are in form: source (3), direction (3).
 #define RaySourcex                              0
@@ -56,7 +56,7 @@
 #define TriangleBUDom                           16
 #define TriangleBVDom                           17
 #define TriangleCUDom                           18
-#define TriangleCDDom                           19
+#define TriangleCVDom                           19
 
 // Light vector
 #define LightVector                             0
@@ -91,10 +91,10 @@
 #define CameraUp                                6
 #define CameraHorizontal                        9
 #define CameraVertical                          12
-#define CameraFOV                               15
+#define CameraFoV                               15
 #define CameraAR                                16
 #define CameraHeight                            17
 #define CameraWidth                             18
-#define CameraDFoVDW                            19
+#define CameraDFoVARDW                          19
 #define CameraFoVAR                             20
 #define CameraDFoVDH                            21

@@ -1,5 +1,5 @@
-#define MAX_VAL 0x7FFFFFFF;
-#define MIN_VAL 0x80000000;
+#define MAX_VAL 0x7FFFFFFF
+#define MIN_VAL 0x80000000
 
 // Sine and cosine defines
 #define FP_CONST_B   1.2732391357      // A = 4 / pi

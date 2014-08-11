@@ -1,8 +1,8 @@
-extern float MaterialDB[MAX_OBJECTS][19];
-extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
-extern float Light[8];
-extern int noTriangles[MAX_OBJECTS];
-extern int noObjects;
+// extern float MaterialDB[MAX_OBJECTS][19];
+// extern float ObjectDB[MAX_OBJECTS][MAX_TRIANGLES][20];
+// extern float Light[8];
+// extern int noTriangles[MAX_OBJECTS];
+// extern int noObjects;
 
 // Prototypes
 void setMaterial(int materialIdx, float colour[3], float ambiance, float diffusive, float specular, float shininess, float reflectivity, float opacity, float refractivity, int textureIndex);
@@ -25,7 +25,7 @@ void setMaterial(int materialIdx, float colour[3], float ambiance, float diffusi
     MaterialDB[materialIdx][MaterialReflectivity] = reflectivity;
     MaterialDB[materialIdx][MaterialOpacity] = opacity;
     MaterialDB[materialIdx][MaterialRefractivity] = refractivity;
-    if ((void) refractivity == 0)
+    if ((void) refractivity == (void) 0)
     {
         MaterialDB[materialIdx][MaterialInverseRefractivity] = 1.0;
         MaterialDB[materialIdx][MaterialSquareInverseRefractivity] = 1.0;

@@ -7,18 +7,14 @@
  *      Author: andrew
  */
 
-void ambiance(float textureColour[3]);
-void diffusion(float lightDirection[3], float textureColour[3]);
-void specular(float lightDirection[3], float textureColour[3]);
+void ambiance(float localHitData[18], float textureColour[3]);
+void diffusion(float localHitData[18], float lightDirection[3], float textureColour[3]);
+void specular(float localHitData[18], float lightDirection[3], float textureColour[3]);
 
-#include "fpmath.h"
-
-#include "rays.h"
-
-extern float RGBChannels[3];
-extern float ResultStore[4][4];
-extern float Light[8];
-extern float MaterialDB[MAX_OBJECTS][19];
+// extern float RGBChannels[3];
+// extern float ResultStore[4][4];
+// extern float Light[8];
+// extern float MaterialDB[MAX_OBJECTS][19];
 
 // void checkColour(Vector colour, int stage)
 // {
@@ -39,16 +35,16 @@ extern float MaterialDB[MAX_OBJECTS][19];
 /* Creates ambiance effect given a hit, a scene and some light */
 void ambiance(float localHitData[18], float textureColour[3])
 {
-    int i;
+    int i, objIdx = localHitData[HitDataObjectIndex];
     
     // Check to see if there's a texture
     if (textureColour[0] < 0)
          // No texture. Apply material colour
         for (i = 0; i < 3; i += 1)
-            RGBChannels[i] += MaterialDB[localHitData[HitDataObjectIndex]][MaterialCompAmbianceColour + i];
+            RGBChannels[i] += MaterialDB[objIdx][MaterialCompAmbianceColour + i];
     else
     {
-        scalarVecMult(MaterialDB[localHitData[HitDataObjectIndex]][MaterialAmbiance], textureColour); // Texture. Apply texture colour
+        scalarVecMult(MaterialDB[objIdx][MaterialAmbiance], textureColour); // Texture. Apply texture colour
         for (i = 0; i < 3; i += 1)
             RGBChannels[i] += ResultStore[i];
     }
@@ -109,7 +105,7 @@ void diffusion(float localHitData[18], float lightDirection[3], float textureCol
 void specular(float localHitData[18], float lightDirection[3], float textureColour[3])
 {
     int i;
-    float vector[3], dotproduct, distance;
+    float vector[3], dotProduct, distance;
     
     if (MaterialDB[localHitData[HitDataObjectIndex]][MaterialSpecular] > 0)
     {
