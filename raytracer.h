@@ -98,3 +98,18 @@
 #define CameraDFoVARDW                          19
 #define CameraFoVAR                             20
 #define CameraDFoVDH                            21
+
+
+// FP math defines
+#define MAX_VAL                                 0x7FFFFFFF
+#define MIN_VAL                                 0x80000000
+
+// Sine and cosine defines
+#define FP_CONST_B                              1.2732391357      // A = 4 / pi
+#define FP_CONST_C                             -0.4052886963      // B = -4 / pi * pi
+#define FP_CONST_Q                              0.225006      // P = 0.225 or 0.775
+#define FP_PI                                   3.1415926535897932384626      // pi
+#define FP_2PI                                  6.283185307      // 2 * pi
+#define FP_PI_2                                 1.570796327      // pi / 2
+
+#define EPS                                     0x6
