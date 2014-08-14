@@ -323,7 +323,7 @@ float fp_pow(float a, float b)
     if (a <= 0.0)
         return 0.0;
     
-    output = fp_exp(fp_log(a) * b));
+    output = fp_exp(fp_log(a) * b);
     
     return output;
 }
@@ -504,12 +504,12 @@ float deg2rad(float deg)
     // Equivalent to deg * pi / 180, but with increased resolution:
     deg *= 4.468042886;
     
-    // Temporary convert to int to shift
+    // shift
     temp = bitset(deg);
     temp >>= 8;
-    
+    deg = bitset(temp);
     // (deg * 256 * pi / 180) / 256
-    return bitset(temp); // * M_PI / 180.0;
+    return deg; // * M_PI / 180.0;
 }
 
 /* Vector multiply */
@@ -594,7 +594,7 @@ void vecNormalised(float u[3])
     }
     else // Below function calls will populate ResultStore
         if ((void) tempVar == (void) 1)
-            scalarVecMult(0x1000000, u); // Equivalent of 256 as 1 / sqrt(1.52E-5) is 256
+            scalarVecMult(256.0, u); // Equivalent of 256 as 1 / sqrt(1.52E-5) is 256
         else
             scalarVecMult(fp_sqrt(1.0 / tempVar), u);
             // return scalarVecMult(fp_Flt2FP(1. / sqrtf(fp_FP2Flt(tempVar))), u, m, f);
@@ -647,12 +647,13 @@ void matMult(float F[16], float G[16])
 void genXRotateMat(float a)
 {
     int i;
-    float cosa = fp_cos(deg2rad(a)), sina = fp_sin(deg2rad(a));
+    float b = deg2rad(a);
+    float cosa = fp_cos(b), sina = fp_sin(b);
     
-    float m[16] = {1, 0, 0, 0,
+    float m[16] = {1.0, 0, 0, 0,
                    0, 0, 0, 0,
                    0, 0, 0, 0,
-                   0, 0, 0, 1};
+                   0, 0, 0, 1.0};
     m[5] = cosa;
     m[6] = -sina;
     m[9] = sina;
@@ -666,12 +667,13 @@ void genXRotateMat(float a)
 void genYRotateMat(float a)
 {
     int i;
-    float cosa = fp_cos(deg2rad(a)), sina = fp_sin(deg2rad(a));
+    float b = deg2rad(a);
+    float cosa = fp_cos(b), sina = fp_sin(b);
     
     float m[16] = {0, 0, 0, 0,
-                   0, 1, 0, 0,
+                   0, 1.0, 0, 0,
                    0, 0, 0, 0,
-                   0, 0, 0, 1};
+                   0, 0, 0, 1.0};
     
     m[0] = cosa;
     m[2] = sina;
@@ -686,12 +688,13 @@ void genYRotateMat(float a)
 void genZRotateMat(float a)
 {
     int i;
-    float cosa = fp_cos(deg2rad(a)), sina = fp_sin(deg2rad(a));
+    float b = deg2rad(a);
+    float cosa = fp_cos(b), sina = fp_sin(b);
     
     float m[16] = {0, 0, 0, 0,
                    0, 0, 0, 0,
-                   0, 0, 1, 0,
-                   0, 0, 0, 1};
+                   0, 0, 1.0, 0,
+                   0, 0, 0, 1.0};
     
     m[0] = cosa;
     m[1] = -sina;
@@ -723,10 +726,10 @@ void genZRotateMat(float a)
 void genTransMatrix(float tx, float ty, float tz)
 {
     int i;
-    float m[16] = {1, 0, 0, 0,
-                   0, 1, 0, 0,
-                   0, 0, 1, 0,
-                   0, 0, 0, 1};
+    float m[16] = {1.0, 0, 0, 0,
+                   0, 1.0, 0, 0,
+                   0, 0, 1.0, 0,
+                   0, 0, 0, 1.0};
     
     m[3] = tx;
     m[7] = ty;
@@ -924,7 +927,6 @@ void setCamera(float location[3], float view[3], float fov, int width, int heigh
     Camera[CameraDFoVARDW] = dfovardw;
     Camera[CameraFoVAR] = fovar;
     Camera[CameraDFoVDH] = dfovdh;
-    printf("Reached end of setCamera function.\n");
 }
 
 float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float currentDistance)
@@ -932,19 +934,19 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     int ku, kv;
     float dk, du, dv, ok, ou, ov, denom, dist, hu, hv, au, av, numer, beta, gamma, cmpopt, tempFl, tempFl2;
     
-    int shift1, msb1, msb2, bitdiff1, biteval, denomi, numeri;
+    int shift1, msb1, msb2, bitdiff1, biteval, denomi, numeri, cmpopti;
     int tempVar1, tempVar2;
     
     int dominantAxisIdx = bitset(ObjectDB[objectIdx][triangleIdx][TriangleDominantAxisIdx]);
     
     // Determine if an error occurred when preprocessing this triangle:
-    
     if (dominantAxisIdx > 2 || dominantAxisIdx < 0)
         return 0;
     
     // Now get the correct axes and offset using the modulo vector:
     ku = DomMod[dominantAxisIdx + 1];
     kv = DomMod[dominantAxisIdx + 2];
+    
     
     // Now take the correct components for destination:
     dk = (dominantAxisIdx == 0) ? ray[RayDirectionx] : ((dominantAxisIdx == 1) ? ray[RayDirectiony] : ray[RayDirectionz]);
@@ -958,11 +960,12 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     
     // Compute the denominator:
     denom = dk + (ObjectDB[objectIdx][triangleIdx][TriangleNUDom] * du) + (ObjectDB[objectIdx][triangleIdx][TriangleNVDom] * dv);
-    if (denom < 0x4 && denom > -0x4)
+    denomi = bitset(denom);
+    if (denomi < 0x4 && denomi > -0x4)
         return 0;
+    
     numer = ObjectDB[objectIdx][triangleIdx][TriangleNDDom] - ok - (ObjectDB[objectIdx][triangleIdx][TriangleNUDom] * ou) - (ObjectDB[objectIdx][triangleIdx][TriangleNVDom] * ov);
     
-    denomi = bitset(denom);
     numeri = bitset(numer);
     
     if (numeri == 0)
@@ -1047,7 +1050,8 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     }
     else
     {
-        tempFl = bitset(denomi << bitdiff1);
+        denomi <<= bitdiff1;
+        tempFl = bitset(denomi);
         dist = numer / tempFl;
         // Early exit:
         tempVar1 = bitset(currentDistance);
@@ -1086,7 +1090,8 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     }
     
     beta = (hv * ObjectDB[objectIdx][triangleIdx][TriangleBUDom]) + (hu * ObjectDB[objectIdx][triangleIdx][TriangleBVDom]);
-    cmpopt = EPS + (biteval ? 0x10000 : (0x10000 >> bitdiff1));
+    cmpopti = EPS + (biteval ? 0x10000 : (0x10000 >> bitdiff1));
+    cmpopt = bitset(cmpopti);
     
     // If negative, exit early
     if (beta < 0 || beta > cmpopt)
@@ -1111,20 +1116,20 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
 
 void objectIntersection(float ray[6], int objectIdx)
 {
-    float Mu, Mv, intersectionPoint, nearestIntersection = 0x7FFFFFFF;
+    float Mu, Mv, intersectionPoint, nearestIntersection = bitset(MAX_VAL);
     int n, i, nearestIdx, bitshift, nearestbitshift = 32;
     float dirVec[3], normVec[3], location[3];
     
     HitData[HitDataDistance] = 0;
     
     for (i = 0; i < 3; i += 1)
-        dirVec[i] = ray[RaySourcex + i];
+        dirVec[i] = ray[RayDirectionx + i];
     
     for (n = 0; n < noTriangles[objectIdx]; n += 1)
     {
         intersectionPoint = triangleIntersection(ray, objectIdx, n, nearestIntersection);
         
-        if (ResultStore[2] <= nearestbitshift && intersectionPoint > 0 && intersectionPoint < nearestIntersection)
+        if ((int) ResultStore[2] <= nearestbitshift && intersectionPoint > 0 && intersectionPoint < nearestIntersection)
         {
             // Populate the vectors
             for (i = 0; i < 3; i += 1)
@@ -1144,7 +1149,7 @@ void objectIntersection(float ray[6], int objectIdx)
     }
     
     // Only complete the hit data iff there was an intersection
-    if (nearestIntersection > 0 && nearestIntersection < 0x7FFFFFFF)
+    if (nearestIntersection > 0 && (void) nearestIntersection < (void) MAX_VAL)
     {
         scalarVecMult(nearestIntersection, dirVec);
         // Create the two vectors
@@ -1166,9 +1171,10 @@ void objectIntersection(float ray[6], int objectIdx)
         HitData[HitDataDistance] = nearestIntersection;
         HitData[HitDataMu] = Mu;
         HitData[HitDataMv] = Mv;
+        // printf("NI: %f Mu: %f, Mv: %f\n", nearestIntersection, Mu, Mv);
         HitData[HitDatabitshift] = nearestbitshift;
         HitData[HitDataTriangleIndex] = bitset(nearestIdx);
-        HitData[HitDataObjectIndex] = objectIdx;
+        HitData[HitDataObjectIndex] = bitset(objectIdx);
     }
     else
         HitData[HitDataObjectIndex] = -1;
@@ -1179,7 +1185,7 @@ void sceneIntersection(float ray[6])
     int n, i;
     float nearestHit[18];
     
-    nearestHit[HitDataDistance] = 0x7FFFFFFF;
+    nearestHit[HitDataDistance] = bitset(MAX_VAL);
     
     for (n = 0; n < noObjects; n += 1)
     {
@@ -1191,7 +1197,7 @@ void sceneIntersection(float ray[6])
     }
     
     // Now check to see if there actually was a hit:
-    if (nearestHit[HitDataDistance] <= 0 || nearestHit[HitDataDistance] >= 0x7FFFFFFF)
+    if (((void) nearestHit[HitDataDistance] <= (void) 0) || ((void) nearestHit[HitDataDistance] >= (void) MAX_VAL))
         nearestHit[HitDataObjectIndex] = -1;
     // Finally copy the contents of the nearest hit vector to the hit data vector.
     for (n = 0; n < 18; n += 1)
@@ -1203,10 +1209,10 @@ float traceShadow(float localHitData[18], float direction[3])
     float ray[6];
     
     int n, m;
-    float tempDist = 0x7FFFFFFF;
+    float tempDist = bitset(MAX_VAL);
     
     // Populate the ray vector
-    for (n = 0; n < 6; n += 1)
+    for (n = 0; n < 3; n += 1)
     {
         ray[n] = localHitData[HitDataHitLocation + n];
         ray[RayDirectionx + n] = direction[n];
@@ -1218,14 +1224,13 @@ float traceShadow(float localHitData[18], float direction[3])
         for (n = 0; n < noTriangles[m]; n += 1)
         {
             // Ensure there are no self-intersections
-            if ((void) m == (void) localHitData[HitDataObjectIndex] && (void) n == (void) localHitData[HitDataTriangleIndex])
+            if (((void) m == (void) localHitData[HitDataObjectIndex]) && ((void) n == (void) localHitData[HitDataTriangleIndex]))
                 continue;
             
-            if (triangleIntersection(ray, m, n, tempDist) > (EPS << 1))
+            if ((void) triangleIntersection(ray, m, n, tempDist) > (void) (EPS << 1))
                 return Light[LightShadowFactor];
         }
     }
-    
     // If here, no objects obscured the light source, so return 0.
     return 0;
 }
@@ -1316,7 +1321,7 @@ void refractRay(float localHitData[18], float inverserefreactivity, float square
 */
 void createRay(int x, int y)
 {
-    float sx = bitset(x), sy = bitset(y), shorizontal[3], svertical[3], sview[3];
+    float sx = (float) x, sy = (float) y, shorizontal[3], svertical[3], sview[3];
     int i;
     
     // First scale x and scale y:
@@ -1325,12 +1330,15 @@ void createRay(int x, int y)
     sy *= Camera[CameraDFoVDH];
     sy -= Camera[CameraFoV];
     
+    
+    
     // Next, scale horizontal and vertical.
     for (i = 0; i < 3; i += 1)
     {
         shorizontal[i] = sx * Camera[CameraHorizontal + i];
         svertical[i] = sy * Camera[CameraVertical + i];
         sview[i] = shorizontal[i] + svertical[i] + Camera[CameraView + i];
+        // printf("sview[%i] = %f\n", i, sview[i]);
     }
     
     vecNormalised(sview);
@@ -1341,6 +1349,8 @@ void createRay(int x, int y)
         ResultStore[i + 3] = ResultStore[i];
         ResultStore[i] = Camera[CameraLocation + i];
     }
+    // for (i = 0; i < 6; i += 1)
+    //     printf("CreateRay[%i] = %f\n", i, ResultStore[i]);
 }
 
 /* Creates ambiance effect given a hit, a scene and some light */
@@ -1352,7 +1362,10 @@ void ambiance(float localHitData[18], float textureColour[3])
     if (textureColour[0] < 0)
          // No texture. Apply material colour
         for (i = 0; i < 3; i += 1)
+        {
             RGBChannels[i] += MaterialDB[objIdx][MaterialCompAmbianceColour + i];
+            // printf("Ambiance: RGBChannels[%i] = %f\n", i, RGBChannels[i]);
+        }
     else
     {
         scalarVecMult(MaterialDB[objIdx][MaterialAmbiance], textureColour); // Texture. Apply texture colour
@@ -1386,7 +1399,7 @@ void diffusion(float localHitData[18], float lightDirection[3], float textureCol
         if (textureColour[0] < 0)
         {    
             for (i = 0; i < 3; i += 1)
-                vector[i] = MaterialDB[localHitData[HitDataObjectIndex]][MaterialLightColour + i]
+                vector[i] = MaterialDB[localHitData[HitDataObjectIndex]][MaterialLightColour + i];
              // No texture defined
             scalarVecMult(distance, vector);
         }
@@ -1409,7 +1422,10 @@ void diffusion(float localHitData[18], float lightDirection[3], float textureCol
         return;
     
     for (i = 0; i < 3; i += 1)
+    {
         RGBChannels[i] += ResultStore[i];
+        // printf("Diffusion: RGBChannels[%i] = %f\n", i, RGBChannels[i]);
+    }
 }
 
 /* Creates specular effect given a hit, a scene and some light */
@@ -1455,7 +1471,10 @@ void specular(float localHitData[18], float lightDirection[3], float textureColo
         return;
     
     for (i = 0; i < 3; i += 1)
+    {
         RGBChannels[i] += ResultStore[i];
+        // printf("Specular: RGBChannels[%i] = %f\n", i, RGBChannels[i]);
+    }
 }
 
 void setMaterial(int materialIdx, float colour[3], float ambiance, float diffusive, float specular, float shininess, float reflectivity, float opacity, float refractivity, int textureIndex)
@@ -1567,7 +1586,7 @@ void createPlaneXZ(int objectIndex, float size, float transMat[16])
 {
     float u[3] = {0, 0, 0}, v[3] = {0, 0, 0}, w[3] = {0, 0, 0};
     float minVal, maxVal;
-    int i, j;
+    int i, j, sizei = bitset(size);
     
     // Create a pattern
     int pattern[12] = {1, 1,
@@ -1577,10 +1596,9 @@ void createPlaneXZ(int objectIndex, float size, float transMat[16])
                        0, 1,
                        0, 0};
     
-    
-    
     // Halve the size
-    size >>= 1;
+    sizei >>= 1;
+    size = bitset(sizei);
     
     minVal = -size;
     maxVal = size;
@@ -1590,11 +1608,10 @@ void createPlaneXZ(int objectIndex, float size, float transMat[16])
    {
        for (j = 0; j < 2; j += 1)
        {
-           u[i * 6 + j*2] = (pattern[i * 6 + j]) ? maxVal : minVal;
-           v[i * 6 + j*2 + 2] = (pattern[i * 6 + j + 2]) ? maxVal : minVal;
-           w[i * 6 + j*2 + 4] = (pattern[i * 6 + j + 4]) ? maxVal : minVal;
+           u[j * 2] = (pattern[i * 6 + j]) ? maxVal : minVal;
+           v[j * 2] = (pattern[i * 6 + j + 2]) ? maxVal : minVal;
+           w[j * 2] = (pattern[i * 6 + j + 4]) ? maxVal : minVal;
        }
-       
        matVecMult(transMat, u);
        for (j = 0; j < 3; j += 1)
            u[j] = ResultStore[j];
@@ -1732,11 +1749,11 @@ void getColour(float localHitData[18])
 void populateDefaultScene()
 {
     int i;
-    int red[3] = {255, 0, 0};
-    int green[3] = {0, 255, 0};
-    int blue[3] = {0, 0, 255};
-    int purple[3] = {140, 0, 255};
-    int white[3] = {255, 255, 255};
+    float red[3] = {1.0, 0, 0};
+    float green[3] = {0, 1.0, 0};
+    float blue[3] = {0, 0, 1.0};
+    float purple[3] = {0.54, 0, 1.0};
+    float white[3] = {1.0, 1.0, 1.0};
     float transMat[16], tempMat[16];
     
     // Set material types
@@ -1830,6 +1847,7 @@ void populateDefaultScene()
         transMat[i] = ResultStore[i];
     // createCube(int objectIndex, float size, float transMat[16])
     createCube(4, 1.5, transMat);
+    
 }
 
 /* The populateScene function calls the ReadByteFile function. This is here mainly
@@ -1840,7 +1858,7 @@ void populateScene()
     /*
     if (inputFile[0] == '\0')
     */
-        populateDefaultScene(); // Pass inputs to the default scene.
+    populateDefaultScene(); // Pass inputs to the default scene.
     /*
     else
         ReadByteFile(scene, lightSrc, m, f); // Pass all inputs to the byte file reader.
@@ -1850,7 +1868,7 @@ void populateScene()
 /* And then the standard draw function that's been previously constructed */
 void draw(float ray[6], int recursion)
 {
-    float outputColour[3], reflectiveColour[3], refractiveColour[3], textureColour[3];
+    float outputColour[3], reflectiveColour[3], refractiveColour[3], textureColour[3] = {-1.0, -1.0, -1.0};
     float vector[3], hitLocation[3], localHitData[18], lightDirection[3];
     float colour[3], alpha;
     float reflection, refraction;
@@ -1860,7 +1878,10 @@ void draw(float ray[6], int recursion)
     // Default is black. We can add to this (if there's a hit) 
     // or just return it (if there's no object)
     for (i = 0; i < 3; i += 1)
-        outputColour[i] = 0;
+        {
+            outputColour[i] = 0;
+            RGBChannels[i] = 0;
+        }
     
     // Check for an intersection. Results are stored in the hit data array
     sceneIntersection(ray);
@@ -1900,10 +1921,8 @@ void draw(float ray[6], int recursion)
         }
         
         // Determine whether this has a texture or not
-        if (MaterialDB[localHitData[HitDataObjectIndex]][MaterialTextureIndex] < 0)
-            for (i = 0; i < 3; i += 1)
-                textureColour[i] = -1;
-        else
+        i = bitset(MaterialDB[localHitData[HitDataObjectIndex]][MaterialTextureIndex]);
+        if (i >= 0)
         {
             // The getColour function doesn't need anything but the hit data to be passed to it.
             // It can determine which texture to use via the material DB (which uses the object
@@ -2029,7 +2048,9 @@ void draw(float ray[6], int recursion)
         }
         */
         // printf("Hit at: %f, %f, %f\nRay Direction: %f, %f, %f\nLight direction: %f, %f, %f\n", fp_FP2Flt(hit.location.x), fp_FP2Flt(hit.location.y), fp_FP2Flt(hit.location.z), fp_FP2Flt(ray.direction.x), fp_FP2Flt(ray.direction.y), fp_FP2Flt(ray.direction.z), fp_FP2Flt(lightDirection.x), fp_FP2Flt(lightDirection.y), fp_FP2Flt(lightDirection.z));
-        scalarVecMult(1 - traceShadow(localHitData, lightDirection), outputColour);
+        // printf("Got to shadow...\n");
+        // printf("Col so far: %f, %f, %f\n", outputColour[0], outputColour[1], outputColour[2]);
+        scalarVecMult(1.0 - traceShadow(localHitData, lightDirection), outputColour);
         // The result is saved to the result store.
         return;
     }
@@ -2048,8 +2069,11 @@ void EnterExternalData(int, int, int, int);
 // Functions start here:
 int main(void)
 {
-    float clocation[3] = {1.0, 2.0, 4.0}, cTheta = 0x0001C4A8, cPhi = 0xFFFE6DDE, cview[3], ray[6];
+    float clocation[3] = {1.0, 2.0, 4.0}, cTheta = bitset(0x0001C4A8), cPhi = bitset(0xFFFE6DDE), cview[3], ray[6];
     int i, x, y;
+    
+    for (i = 0; i < MAX_OBJECTS; i += 1)
+        noTriangles[i] = 0;
     
     printf("Initialising light source...\n");
     
@@ -2074,6 +2098,8 @@ int main(void)
     cview[0] = fp_sin(cTheta) * fp_cos(cPhi);
     cview[1] = fp_cos(cTheta);
     cview[2] = fp_sin(cTheta) * fp_sin(cPhi);
+    
+    printf("View vector: %f, %f, %f\n", cview[0], cview[1], cview[2]);
     printf("Setting camera options...\n");
     setCamera(clocation, cview, 45.0, IMAGE_WIDTH, IMAGE_HEIGHT);
     
@@ -2081,7 +2107,7 @@ int main(void)
     // Now populate the scene.
     populateScene();
     
-    printf("Scene dimensions: %i %i\n", IMAGE_HEIGHT, IMAGE_WIDTH);
+    printf("Scene dimensions: %i %i\n", IMAGE_WIDTH, IMAGE_HEIGHT);
     
     // Begin main task:
     for (y = 0; y < IMAGE_HEIGHT; y += 1)
@@ -2098,6 +2124,9 @@ int main(void)
             printf("draw(%i, %i) = %f %f %f\n", x, y, ResultStore[0], ResultStore[1], ResultStore[2]);
         }
     }
+    
+    return 0;
+    exit(99);
 }
 
 
