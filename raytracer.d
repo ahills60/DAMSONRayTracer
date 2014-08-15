@@ -648,8 +648,8 @@ void genXRotateMat(float a)
     float cosa = fp_cos(b), sina = fp_sin(b);
     
     float m[16] = {1.0, 0, 0, 0,
-                   0, 0, 0, 0,
-                   0, 0, 0, 0,
+                   0, 1.0, 0, 0,
+                   0, 0, 1.0, 0,
                    0, 0, 0, 1.0};
     m[5] = cosa;
     m[6] = -sina;
@@ -667,9 +667,9 @@ void genYRotateMat(float a)
     float b = deg2rad(a);
     float cosa = fp_cos(b), sina = fp_sin(b);
     
-    float m[16] = {0, 0, 0, 0,
+    float m[16] = {1.0, 0, 0, 0,
                    0, 1.0, 0, 0,
-                   0, 0, 0, 0,
+                   0, 0, 1.0, 0,
                    0, 0, 0, 1.0};
     
     m[0] = cosa;
@@ -688,8 +688,8 @@ void genZRotateMat(float a)
     float b = deg2rad(a);
     float cosa = fp_cos(b), sina = fp_sin(b);
     
-    float m[16] = {0, 0, 0, 0,
-                   0, 0, 0, 0,
+    float m[16] = {1.0, 0, 0, 0,
+                   0, 1.0, 0, 0,
                    0, 0, 1.0, 0,
                    0, 0, 0, 1.0};
     
