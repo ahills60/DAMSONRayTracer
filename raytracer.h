@@ -113,3 +113,5 @@
 #define FP_PI_2                                 1.570796327      // pi / 2
 
 #define EPS                                     0x6
+
+#define FURTHEST_RAY                            1 << 30
