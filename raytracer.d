@@ -1770,7 +1770,7 @@ void populateDefaultScene()
     setMaterial(1, blue, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
     setMaterial(2, green, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
     setMaterial(3, purple, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
-    setMaterial(4, white, 0.1, 0.0, 0.9, 32.0, 0.6, 0.0, 1.4, -1);
+    setMaterial(4, white, 0.1, 0.0, 0.9, 5.0, 1.0, 0.0, 0.0, -1);
     
     noObjects = 5;
     
