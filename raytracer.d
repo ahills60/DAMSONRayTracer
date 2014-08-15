@@ -1618,7 +1618,10 @@ void createPlaneXZ(int objectIndex, float size, float transMat[16])
        matVecMult(transMat, w);
        for (j = 0; j < 3; j += 1)
            w[j] = ResultStore[j];
-       setTriangle(objectIndex, noTriangles[objectIndex], w, v, u);
+       if (i == 0)
+           setTriangle(objectIndex, noTriangles[objectIndex], u, v, w);
+       else
+           setTriangle(objectIndex, noTriangles[objectIndex], w, v, u);
    }
 }
 
