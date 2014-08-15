@@ -1126,7 +1126,7 @@ void objectIntersection(float ray[6], int objectIdx)
     {
         intersectionPoint = triangleIntersection(ray, objectIdx, n, nearestIntersection);
         
-        if ((int) ResultStore[2] <= nearestbitshift && intersectionPoint > 0 && intersectionPoint < nearestIntersection)
+        if (((int) ResultStore[2] <= nearestbitshift) && (intersectionPoint > 0) && (intersectionPoint < nearestIntersection))
         {
             // Populate the vectors
             for (i = 0; i < 3; i += 1)
@@ -1138,7 +1138,7 @@ void objectIntersection(float ray[6], int objectIdx)
                 // This is better, so save the results of this
                 nearestIdx = n;
                 nearestIntersection = intersectionPoint;
-                nearestbitshift = ResultStore[2];
+                nearestbitshift = (int) ResultStore[2];
                 Mu = ResultStore[0];
                 Mv = ResultStore[1];
             }
@@ -1169,7 +1169,7 @@ void objectIntersection(float ray[6], int objectIdx)
         HitData[HitDataMu] = Mu;
         HitData[HitDataMv] = Mv;
         // printf("NI: %f Mu: %f, Mv: %f\n", nearestIntersection, Mu, Mv);
-        HitData[HitDatabitshift] = nearestbitshift;
+        HitData[HitDatabitshift] = bitset(nearestbitshift);
         HitData[HitDataTriangleIndex] = bitset(nearestIdx);
         HitData[HitDataObjectIndex] = bitset(objectIdx);
     }
@@ -1188,7 +1188,7 @@ void sceneIntersection(float ray[6])
     {
         objectIntersection(ray, n);
         // Check to see if this hit is worth keeping. If so, take a copy
-        if (HitData[HitDataDistance] > 0 && HitData[HitDataDistance] < nearestHit[HitDataDistance])
+        if ((HitData[HitDataDistance] > 0) && (HitData[HitDataDistance] < nearestHit[HitDataDistance]))
             for (i = 0; i < 18; i += 1)
                 nearestHit[i] = HitData[i];
     }
@@ -1353,7 +1353,7 @@ void createRay(int x, int y)
 /* Creates ambiance effect given a hit, a scene and some light */
 void ambiance(float localHitData[18], float textureColour[3])
 {
-    int i, objIdx = localHitData[HitDataObjectIndex];
+    int i, objIdx = bitset(localHitData[HitDataObjectIndex]);
     
     // Check to see if there's a texture
     if (textureColour[0] < 0)
@@ -1375,9 +1375,9 @@ void ambiance(float localHitData[18], float textureColour[3])
 void diffusion(float localHitData[18], float lightDirection[3], float textureColour[3])
 {
     float vector[3], distance, dotProduct;
-    int i;
+    int i, hitObjIdx = bitset(localHitData[HitDataObjectIndex]);
     
-    if (MaterialDB[localHitData[HitDataObjectIndex]][MaterialDiffusive] > 0)
+    if (MaterialDB[hitObjIdx][MaterialDiffusive] > 0)
     {
         for (i = 0; i < 3; i += 1)
             vector[i] = localHitData[HitDataHitNormal + i];
@@ -1390,13 +1390,13 @@ void diffusion(float localHitData[18], float lightDirection[3], float textureCol
             return;
         
         // Dot product is positive, so continue
-        distance = dotProduct * MaterialDB[localHitData[HitDataObjectIndex]][MaterialDiffusive];
+        distance = dotProduct * MaterialDB[hitObjIdx][MaterialDiffusive];
         
         // Has a texture been defined?
         if (textureColour[0] < 0)
         {    
             for (i = 0; i < 3; i += 1)
-                vector[i] = MaterialDB[localHitData[HitDataObjectIndex]][MaterialLightColour + i];
+                vector[i] = MaterialDB[hitObjIdx][MaterialLightColour + i];
              // No texture defined
             scalarVecMult(distance, vector);
         }
@@ -1428,10 +1428,10 @@ void diffusion(float localHitData[18], float lightDirection[3], float textureCol
 /* Creates specular effect given a hit, a scene and some light */
 void specular(float localHitData[18], float lightDirection[3], float textureColour[3])
 {
-    int i;
+    int i, hitObjIdx = bitset(localHitData[HitDataObjectIndex]);
     float vector[3], dotProduct, distance;
     
-    if (MaterialDB[localHitData[HitDataObjectIndex]][MaterialSpecular] > 0)
+    if (MaterialDB[hitObjIdx][MaterialSpecular] > 0)
     {
         // Reflective ray:
         reflectRay(localHitData);
@@ -1443,13 +1443,13 @@ void specular(float localHitData[18], float lightDirection[3], float textureColo
         if (dotProduct < 0)
             return;
         
-        distance = fp_pow(dotProduct, MaterialDB[localHitData[HitDataObjectIndex]][MaterialShininess]) * MaterialDB[localHitData[HitDataObjectIndex]][MaterialSpecular]);
+        distance = fp_pow(dotProduct, MaterialDB[hitObjIdx][MaterialShininess]) * MaterialDB[hitObjIdx][MaterialSpecular]);
             
         // Has a texture been defined?
         if (textureColour[0] < 0)
         {
             for (i = 0; i < 3; i += 1)
-                vector[i] = MaterialDB[localHitData[HitDataObjectIndex]][MaterialLightColour + i] 
+                vector[i] = MaterialDB[hitObjIdx][MaterialLightColour + i] 
             scalarVecMult(distance, vector); // No texture defined
         }
         else
@@ -1725,12 +1725,12 @@ void getTexel(float localHitData[18], float uv[2])
 void getColour(float localHitData[18])
 {
     float uv1[2], uv2[2], uv3[2];
-    int i;
+    int i, hitObjIdx = bitset(localHitData[HitDataObjectIndex]), hitTriIdx = bitset(localHitData[HitDataTriangleIndex]);
     for (i = 0; i < 2; i += 1)
     {
-        uv1[i] = ObjectDB[localHitData[HitDataObjectIndex]][localHitData[HitDataTriangleIndex]][TriangleAu + i];
-        uv2[i] = ObjectDB[localHitData[HitDataObjectIndex]][localHitData[HitDataTriangleIndex]][TriangleBu + i] - uv1[i];
-        uv3[i] = ObjectDB[localHitData[HitDataObjectIndex]][localHitData[HitDataTriangleIndex]][TriangleCu + i] - uv1[i];
+        uv1[i] = ObjectDB[hitObjIdx][hitTriIdx][TriangleAu + i];
+        uv2[i] = ObjectDB[hitObjIdx][hitTriIdx][TriangleBu + i] - uv1[i];
+        uv3[i] = ObjectDB[hitObjIdx][hitTriIdx][TriangleCu + i] - uv1[i];
     }
     // V - U
     // Scale with Mu
@@ -1881,7 +1881,7 @@ void draw(float ray[6], int recursion)
     float colour[3], alpha;
     float reflection, refraction;
     float newRay[6], source[3];
-    int i;
+    int i, hitObjIdx = -1;
     
     // Default is black. We can add to this (if there's a hit) 
     // or just return it (if there's no object)
@@ -1894,8 +1894,10 @@ void draw(float ray[6], int recursion)
     // Check for an intersection. Results are stored in the hit data array
     sceneIntersection(ray);
     
+    hitObjIdx = bitset(HitData[HitDataObjectIndex]);
+    
     // Determine whether there was a hit. Otherwise default.
-    if (HitData[HitDataObjectIndex] >= 0)
+    if (hitObjIdx >= 0)
     {
         // There was a hit.
         
@@ -1929,7 +1931,7 @@ void draw(float ray[6], int recursion)
         }
         
         // Determine whether this has a texture or not
-        i = bitset(MaterialDB[localHitData[HitDataObjectIndex]][MaterialTextureIndex]);
+        i = bitset(MaterialDB[hitObjIdx][MaterialTextureIndex]);
         if (i >= 0)
         {
             // The getColour function doesn't need anything but the hit data to be passed to it.
