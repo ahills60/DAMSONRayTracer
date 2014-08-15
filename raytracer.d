@@ -1558,6 +1558,10 @@ void createCube(int objectIndex, float size, float transMat[16])
     minVal = -size;
     maxVal = size;
     
+    for (i = 0; i < 4; i += 1)
+        for (j = 0; j < 4; j += 1)
+            printf("T[%i][%i] = %f\n", i, j, transMat[(i * 4 + j)]);
+    
     for (i = 0; i < 12; i += 1)
     {
         for (j = 0; j < 3; j += 1)
@@ -1599,6 +1603,10 @@ void createPlaneXZ(int objectIndex, float size, float transMat[16])
     
     minVal = -size;
     maxVal = size;
+    
+    for (i = 0; i < 4; i += 1)
+        for (j = 0; j < 4; j += 1)
+            printf("T[%i][%i] = %f\n", i, j, transMat[(i * 4 + j)]);
     
     // Create two triangles:
    for (i = 0; i < 2; i += 1)
