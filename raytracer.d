@@ -1772,7 +1772,7 @@ void populateDefaultScene()
     genYRotateMat(45.0);
     for (i = 0; i < 16; i += 1)
         transMat[i] = ResultStore[i];
-    matMult(transMat, tempMat);
+    matMult(tempMat, transMat);
     for (i = 0; i < 16; i += 1)
         transMat[i] = ResultStore[i];
     // createCube(int objectIndex, float size, float transMat[16])
@@ -1784,17 +1784,17 @@ void populateDefaultScene()
         transMat[i] = ResultStore[i];
     createPlaneXZ(3, 10.0, transMat);
     
-    // PlaneXZ 2: the top plane:
-    genTransMatrix(1.0, 5.0, -4.0);
-    for (i = 0; i < 16; i += 1)
-        tempMat[i] = ResultStore[i];
-    genZRotateMat(180.0);
-    for (i = 0; i < 16; i += 1)
-        transMat[i] = ResultStore[i];
-    matMult(transMat, tempMat);
-    for (i = 0; i < 16; i += 1)
-        transMat[i] = ResultStore[i];
-    createPlaneXZ(3, 10.0, transMat);
+    // // PlaneXZ 2: the top plane:
+    // genTransMatrix(1.0, 5.0, -4.0);
+    // for (i = 0; i < 16; i += 1)
+    //     tempMat[i] = ResultStore[i];
+    // genZRotateMat(180.0);
+    // for (i = 0; i < 16; i += 1)
+    //     transMat[i] = ResultStore[i];
+    // matMult(tempMat, transMat);
+    // for (i = 0; i < 16; i += 1)
+    //     transMat[i] = ResultStore[i];
+    // // createPlaneXZ(3, 10.0, transMat);
     
     // PlaneXZ 3: the left plane:
     genTransMatrix(-2.0, 0.0, -4.0);
@@ -1803,7 +1803,7 @@ void populateDefaultScene()
     genZRotateMat(-90.0);
     for (i = 0; i < 16; i += 1)
         transMat[i] = ResultStore[i];
-    matMult(transMat, tempMat);
+    matMult(tempMat, transMat);
     for (i = 0; i < 16; i += 1)
         transMat[i] = ResultStore[i];
     createPlaneXZ(2, 10.0, transMat);
@@ -1815,31 +1815,31 @@ void populateDefaultScene()
     genZRotateMat(90.0);
     for (i = 0; i < 16; i += 1)
         transMat[i] = ResultStore[i];
-    matMult(transMat, tempMat);
+    matMult(tempMat, transMat);
     for (i = 0; i < 16; i += 1)
         transMat[i] = ResultStore[i];
     createPlaneXZ(2, 10.0, transMat);
     
-    // PlaneXZ 5: the left plane:
+    // PlaneXZ 5: the back plane:
     genTransMatrix(1.0, 0.0, -6.0);
     for (i = 0; i < 16; i += 1)
         tempMat[i] = ResultStore[i];
     genXRotateMat(90.0);
     for (i = 0; i < 16; i += 1)
         transMat[i] = ResultStore[i];
-    matMult(transMat, tempMat);
+    matMult(tempMat, transMat);
     for (i = 0; i < 16; i += 1)
         transMat[i] = ResultStore[i];
     createPlaneXZ(1, 10.0, transMat);
     
-    // PlaneXZ 3: the left plane:
+    // Mirror Cube:
     genTransMatrix(0.0, 0.9, -2.7);
     for (i = 0; i < 16; i += 1)
         tempMat[i] = ResultStore[i];
     genYRotateMat(20.0);
     for (i = 0; i < 16; i += 1)
         transMat[i] = ResultStore[i];
-    matMult(transMat, tempMat);
+    matMult(tempMat, transMat);
     for (i = 0; i < 16; i += 1)
         transMat[i] = ResultStore[i];
     // createCube(int objectIndex, float size, float transMat[16])
