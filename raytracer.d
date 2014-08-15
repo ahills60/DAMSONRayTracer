@@ -1575,7 +1575,7 @@ void createCube(int objectIndex, float size, float transMat[16])
         matVecMult(transMat, w);
         for (j = 0; j < 3; j += 1)
             w[j] = ResultStore[j];
-        setTriangle(objectIndex, noTriangles[objectIndex], u, v, w);
+        setTriangle(objectIndex, noTriangles[objectIndex], w, v, u);
     }
 }
 
@@ -1618,7 +1618,7 @@ void createPlaneXZ(int objectIndex, float size, float transMat[16])
        matVecMult(transMat, w);
        for (j = 0; j < 3; j += 1)
            w[j] = ResultStore[j];
-       setTriangle(objectIndex, noTriangles[objectIndex], u, v, w);
+       setTriangle(objectIndex, noTriangles[objectIndex], w, v, u);
    }
 }
 
