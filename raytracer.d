@@ -1113,7 +1113,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
 
 void objectIntersection(float ray[6], int objectIdx)
 {
-    float Mu, Mv, intersectionPoint, nearestIntersection = bitset(MAX_VAL);
+    float Mu, Mv, intersectionPoint, nearestIntersection = bitset(FURTHEST_RAY);
     int n, i, nearestIdx, bitshift, nearestbitshift = 32;
     float dirVec[3], normVec[3], location[3];
     
@@ -1146,7 +1146,7 @@ void objectIntersection(float ray[6], int objectIdx)
     }
     
     // Only complete the hit data iff there was an intersection
-    if (nearestIntersection > 0 && (void) nearestIntersection < (void) MAX_VAL)
+    if ((nearestIntersection > 0) && ((void) nearestIntersection < (void) FURTHEST_RAY))
     {
         scalarVecMult(nearestIntersection, dirVec);
         // Create the two vectors
@@ -1182,7 +1182,7 @@ void sceneIntersection(float ray[6])
     int n, i;
     float nearestHit[18];
     
-    nearestHit[HitDataDistance] = bitset(MAX_VAL);
+    nearestHit[HitDataDistance] = bitset(FURTHEST_RAY);
     
     for (n = 0; n < noObjects; n += 1)
     {
@@ -1194,7 +1194,7 @@ void sceneIntersection(float ray[6])
     }
     
     // Now check to see if there actually was a hit:
-    if (((void) nearestHit[HitDataDistance] <= (void) 0) || ((void) nearestHit[HitDataDistance] >= (void) MAX_VAL))
+    if (( nearestHit[HitDataDistance] <= 0) || ((void) nearestHit[HitDataDistance] >= (void) FURTHEST_RAY))
         nearestHit[HitDataObjectIndex] = -1;
     // Finally copy the contents of the nearest hit vector to the hit data vector.
     for (n = 0; n < 18; n += 1)
@@ -1206,7 +1206,7 @@ float traceShadow(float localHitData[18], float direction[3])
     float ray[6];
     
     int n, m;
-    float tempDist = bitset(MAX_VAL);
+    float tempDist = bitset(FURTHEST_RAY);
     
     // Populate the ray vector
     for (n = 0; n < 3; n += 1)
