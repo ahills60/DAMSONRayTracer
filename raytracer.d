@@ -132,8 +132,8 @@ float fp_sin(float a)
 /* Fixed point cosine */
 float fp_cos(float a)
 {
-    float b = a;
-    b += FP_PI_2;
+    // float b = a;
+    // b += FP_PI_2;
     // printf("%f (input) => %f (add pi/2)\n", a, b);
     // a += (a < -FP_PI) ? FP_2PI : 0;
     // c = (b > FP_PI) ? FP_2PI : 0.0;
@@ -142,7 +142,7 @@ float fp_cos(float a)
     // printf("%f (if inline result) =/= %f (if branch result) (%f (inline eval) =/= %f (branch eval))\n", d, f, c, e);
     
     // Use the sine function
-    return fp_sin(b);
+    return fp_sin(a + FP_PI_2);
 }
 
 float fp_exp(float z) 
