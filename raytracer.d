@@ -938,7 +938,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     
     // Determine if an error occurred when preprocessing this triangle:
     if (dominantAxisIdx > 2 || dominantAxisIdx < 0)
-        return 0;
+        return -1;
     
     // Now get the correct axes and offset using the modulo vector:
     ku = DomMod[dominantAxisIdx + 1];
@@ -951,7 +951,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     dv = (kv == 0) ? ray[RayDirectionx] : ((kv == 1) ? ray[RayDirectiony] : ray[RayDirectionz]);
     
     // Then do the same with the source:
-    ok = (dominantAxisIdx == 0) ? ray[RaySourcex] : ((dominantAxisIdx == 1) ? ray[RaySourcex] : ray[RaySourcez]);
+    ok = (dominantAxisIdx == 0) ? ray[RaySourcex] : ((dominantAxisIdx == 1) ? ray[RaySourcey] : ray[RaySourcez]);
     ou = (ku == 0) ? ray[RaySourcex] : ((ku == 1) ? ray[RaySourcey] : ray[RaySourcez]);
     ov = (kv == 0) ? ray[RaySourcex] : ((kv == 1) ? ray[RaySourcey] : ray[RaySourcez]);
     
@@ -959,17 +959,17 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     denom = dk + (ObjectDB[objectIdx][triangleIdx][TriangleNUDom] * du) + (ObjectDB[objectIdx][triangleIdx][TriangleNVDom] * dv);
     denomi = bitset(denom);
     if (denomi < 0x4 && denomi > -0x4)
-        return 0;
+        return -1;
     
     numer = ObjectDB[objectIdx][triangleIdx][TriangleNDDom] - ok - (ObjectDB[objectIdx][triangleIdx][TriangleNUDom] * ou) - (ObjectDB[objectIdx][triangleIdx][TriangleNVDom] * ov);
     
     numeri = bitset(numer);
     
     if (numeri == 0)
-        return 0;
+        return -1;
     // Do a sign check
     if ((denomi & 0x80000000) ^ (numeri & 0x80000000))
-        return 0;
+        return -1;
     
     // Locate the MSB of the numerator:
     tempVar1 = bitset(fabs(numer));
@@ -1043,7 +1043,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
         // Early exit if the computed distances is greater than what we've already encoutered
         // and if it's not a valid distance
         if (currentDistance < dist)
-            return 0;
+            return -1;
     }
     else
     {
@@ -1055,7 +1055,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
         tempVar1 >>= bitdiff1;
         tempFl = bitset(tempVar1);
         if (tempFl < dist)
-            return 0;
+            return -1;
     }
     
     // Extract points from primary vector:
@@ -1092,17 +1092,17 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     
     // If negative, exit early
     if (beta < 0 || beta > cmpopt)
-        return 0;
+        return -1;
     
     gamma = (hu * ObjectDB[objectIdx][triangleIdx][TriangleCUDom]) + (hv * ObjectDB[objectIdx][triangleIdx][TriangleCVDom]);
     
     // If negative, exit early
     if (gamma < 0 || gamma > cmpopt)
-        return 0;
+        return -1;
     
     // As these are barycentric coordinates, the sum should be < 1
     if ((gamma + beta) > cmpopt)
-        return 0;
+        return -1;
     
     ResultStore[0] = beta;
     ResultStore[1] = gamma;
@@ -1769,11 +1769,11 @@ void populateDefaultScene()
     
     // Set material types
     // setMaterial(int materialIdx, float colour[3], float ambiance, float diffusive, float specular, float shininess, float reflectivity, float opacity, float refractivity, int textureIndex)
-    setMaterial(0, red, 0.0, 0.5, 0.0, 0.0, 0.0, 0.8, 1.4, -1);
+    setMaterial(0, red, 0.3, 0.5, 0.0, 0.0, 0.0, 0.8, 1.4, -1);
     setMaterial(1, blue, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
     setMaterial(2, green, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
     setMaterial(3, purple, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
-    setMaterial(4, white, 0.1, 0.0, 0.9, 5.0, 1.0, 0.0, 0.0, -1);
+    setMaterial(4, white, 0.1, 0.3, 0.4, 5.0, 1.0, 0.0, 0.0, -1);
     
     noObjects = 5;
     
