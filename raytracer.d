@@ -1611,11 +1611,14 @@ void createPlaneXZ(int objectIndex, float size, float transMat[16])
     // Create two triangles:
    for (i = 0; i < 2; i += 1)
    {
+       u[1] = 0;
+       v[1] = 0;
+       w[1] = 0;
        for (j = 0; j < 2; j += 1)
        {
-           u[j * 2] = (pattern[i * 6 + j]) ? maxVal : minVal;
-           v[j * 2] = (pattern[i * 6 + j + 2]) ? maxVal : minVal;
-           w[j * 2] = (pattern[i * 6 + j + 4]) ? maxVal : minVal;
+           u[j * 2] = (pattern[(i * 6) + j]) ? maxVal : minVal;
+           v[j * 2] = (pattern[(i * 6) + j + 2]) ? maxVal : minVal;
+           w[j * 2] = (pattern[(i * 6) + j + 4]) ? maxVal : minVal;
        }
        matVecMult(transMat, u);
        for (j = 0; j < 3; j += 1)
@@ -1795,18 +1798,6 @@ void populateDefaultScene()
         transMat[i] = ResultStore[i];
     createPlaneXZ(3, 10.0, transMat);
     
-    // // PlaneXZ 2: the top plane:
-    // genTransMatrix(1.0, 5.0, -4.0);
-    // for (i = 0; i < 16; i += 1)
-    //     tempMat[i] = ResultStore[i];
-    // genZRotateMat(180.0);
-    // for (i = 0; i < 16; i += 1)
-    //     transMat[i] = ResultStore[i];
-    // matMult(tempMat, transMat);
-    // for (i = 0; i < 16; i += 1)
-    //     transMat[i] = ResultStore[i];
-    // // createPlaneXZ(3, 10.0, transMat);
-    
     // PlaneXZ 3: the left plane:
     genTransMatrix(-2.0, 0.0, -4.0);
     for (i = 0; i < 16; i += 1)
@@ -1842,6 +1833,18 @@ void populateDefaultScene()
     for (i = 0; i < 16; i += 1)
         transMat[i] = ResultStore[i];
     createPlaneXZ(1, 10.0, transMat);
+    
+    // // PlaneXZ 2: the top plane:
+    // genTransMatrix(1.0, 5.0, -4.0);
+    // for (i = 0; i < 16; i += 1)
+    //     tempMat[i] = ResultStore[i];
+    // genZRotateMat(180.0);
+    // for (i = 0; i < 16; i += 1)
+    //     transMat[i] = ResultStore[i];
+    // matMult(tempMat, transMat);
+    // for (i = 0; i < 16; i += 1)
+    //     transMat[i] = ResultStore[i];
+    // // createPlaneXZ(3, 10.0, transMat);
     
     // Mirror Cube:
     genTransMatrix(0.0, 0.9, -2.7);
