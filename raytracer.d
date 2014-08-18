@@ -602,9 +602,9 @@ void vecNormalised(float u[3])
 void matVecMult(float F[16], float u[3])
 {
     // Note that we don't consider the last row within the matrix. This is discarded deliberately.
-    ResultStore[0] = F[0] * u[0] + F[1] * u[1] + F[2] * u[2] + F[3];
-    ResultStore[1] = F[4] * u[0] + F[5] * u[1] + F[6] * u[2] + F[7];
-    ResultStore[2] = F[8] * u[0] + F[9] * u[1] + F[10] * u[2] + F[11];
+    ResultStore[0] = (F[0] * u[0]) + (F[1] * u[1]) + (F[2] * u[2]) + F[3];
+    ResultStore[1] = (F[4] * u[0]) + (F[5] * u[1]) + (F[6] * u[2]) + F[7];
+    ResultStore[2] = (F[8] * u[0]) + (F[9] * u[1]) + (F[10] * u[2]) + F[11];
 }
 
 /* Matrix multiplied by a matrix */
@@ -1113,7 +1113,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
 
 void objectIntersection(float ray[6], int objectIdx)
 {
-    float Mu, Mv, intersectionPoint, nearestIntersection = bitset(FURTHEST_RAY);
+    float Mu, Mv, intersectionPoint, nearestIntersection = bitset(FURTHEST_RAY), epseq = bitset(EPS);
     int n, i, nearestIdx, bitshift, nearestbitshift = 32;
     float dirVec[3], normVec[3], location[3];
     
@@ -1133,7 +1133,7 @@ void objectIntersection(float ray[6], int objectIdx)
                 normVec[i] = ObjectDB[objectIdx][n][Trianglenormcrvmuwmux + i];
             
             // Determine whether the triangle is front facing.
-            if (dot(normVec, dirVec) < EPS)
+            if (dot(normVec, dirVec) < epseq)
             {
                 // This is better, so save the results of this
                 nearestIdx = n;
@@ -1566,7 +1566,7 @@ void createCube(int objectIndex, float size, float transMat[16])
     {
         for (j = 0; j < 3; j += 1)
         {
-            u[j] = (pattern[i * 9 + j]) ? maxVal : minVal;
+            u[j] = (pattern[(i * 9) + j]) ? maxVal : minVal;
             v[j] = (pattern[(i * 9) + 3 + j]) ? maxVal : minVal;
             w[j] = (pattern[(i * 9) + 6 + j]) ? maxVal : minVal;
         }
@@ -1961,7 +1961,7 @@ void draw(float ray[6], int recursion)
                 
                 // Recompute the source by adding a little extra to the distance.
                 // Compute the total distance first:
-                scalarVecMult(localHitData[HitDataDistance] + 0x80, vector);
+                scalarVecMult(localHitData[HitDataDistance] + 0.001953125, vector); // .001953125 is eqivalent to 0x80
                 // Extract the results from the result store:
                 for (i = 0; i < 3; i += 1)
                     vector[i] = ResultStore[i];
