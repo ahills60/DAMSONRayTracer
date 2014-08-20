@@ -83,7 +83,7 @@ void objectIntersection(float ray[6], int objectIdx);
 void sceneIntersection(float ray[6]);
 float traceShadow(float localHitData[18], float direction[3]);
 void reflectRay(float localHitData[18]);
-// void refractRay(float localHitData[18], float inverserefreactivity, float squareinverserefractivity);
+void refractRay(float localHitData[18], float inverserefreactivity, float squareinverserefractivity);
 void createRay(int x, int y);
 void ambiance(float localHitData[18], float textureColour[3]);
 void diffusion(float localHitData[18], float lightDirection[3], float textureColour[3]);
@@ -1265,7 +1265,7 @@ void reflectRay(float localHitData[18])
         ResultStore[i] = localHitData[HitDataHitLocation + i];
     }
 }
-/*
+
 void refractRay(float localHitData[18], float inverserefreactivity, float squareinverserefractivity)
 {
     float direction[3], normal[3], c;
@@ -1315,7 +1315,7 @@ void refractRay(float localHitData[18], float inverserefreactivity, float square
         ResultStore[i] = localHitData[HitDataHitLocation + i];
     }
 }
-*/
+
 void createRay(int x, int y)
 {
     float sx = (float) x, sy = (float) y, shorizontal[3], svertical[3], sview[3];
@@ -1773,7 +1773,7 @@ void populateDefaultScene()
     setMaterial(1, blue, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
     setMaterial(2, green, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
     setMaterial(3, purple, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
-    setMaterial(4, white, 0.1, 0.3, 0.4, 5.0, 1.0, 0.0, 0.0, -1);
+    setMaterial(4, white, 0.1, 0.3, 0.4, 1.4, 1.0, 0.0, 0.0, -1);
     
     noObjects = 5;
     
@@ -2007,7 +2007,6 @@ void draw(float ray[6], int recursion)
         for (i = 0; i < 3; i += 1)
             outputColour[i] = RGBChannels[i];
         
-        /*
         // Should we go deeper?
         if (recursion > 0)
         {
@@ -2036,7 +2035,7 @@ void draw(float ray[6], int recursion)
                 outputColour[i] = ResultStore[i];
             
             // Get the refraction in a similar way:
-            refractRay(localHitData MaterialDB[localHitData[HitDataObjectIndex]][MaterialInverseRefractivity], MaterialDB[localHitData[HitDataObjectIndex]][MaterialSquareInverseRefractivity]);
+            refractRay(localHitData, MaterialDB[localHitData[HitDataObjectIndex]][MaterialInverseRefractivity], MaterialDB[localHitData[HitDataObjectIndex]][MaterialSquareInverseRefractivity]);
             // And then extract the result:
             for (i = 0; i < 6; i += 1)
                 newRay[i] = ResultStore[i];
@@ -2059,7 +2058,6 @@ void draw(float ray[6], int recursion)
             for (i = 0; i < 3; i += 1)
                 outputColour[i] = ResultStore[i];
         }
-        */
         // printf("Hit at: %f, %f, %f\nRay Direction: %f, %f, %f\nLight direction: %f, %f, %f\n", fp_FP2Flt(hit.location.x), fp_FP2Flt(hit.location.y), fp_FP2Flt(hit.location.z), fp_FP2Flt(ray.direction.x), fp_FP2Flt(ray.direction.y), fp_FP2Flt(ray.direction.z), fp_FP2Flt(lightDirection.x), fp_FP2Flt(lightDirection.y), fp_FP2Flt(lightDirection.z));
         // printf("Got to shadow...\n");
         // printf("Col so far: %f, %f, %f\n", outputColour[0], outputColour[1], outputColour[2]);
