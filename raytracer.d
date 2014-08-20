@@ -100,18 +100,13 @@ void draw(float ray[6], int recursion);
 /* Start functions */
 float fp_sin(float a)
 {
-    float c, absc, absa;
-    // int b = bitset(a);
-    float output;
+    float c, absc, absa, output;
+    
     // Ensure input within the range of -pi to pi
-    // a += (a < -FP_PI) ? FP_2PI : 0.0;
-    // a -= (a > FP_PI) ? FP_2PI : 0.0;
     if (a > FP_PI)
         a -= FP_2PI;
     if (a < -FP_PI)
         a += FP_2PI;
-    
-    // printf("%f\n", a);
     
     absa = fabs(a);
     
@@ -119,8 +114,6 @@ float fp_sin(float a)
     c = (FP_CONST_B * a) + (FP_CONST_C * a * absa);
     
     absc = fabs(c);
-    
-    // printf("%d : %d : %d\n", c, absc, FP_CONST_Q);
     
     // Get extra precision weighting the parabola:
     c += (FP_CONST_Q * ((c * absc) - c)); // Q * output + P * output * abs(output)
@@ -132,15 +125,6 @@ float fp_sin(float a)
 /* Fixed point cosine */
 float fp_cos(float a)
 {
-    // float b = a;
-    // b += FP_PI_2;
-    // printf("%f (input) => %f (add pi/2)\n", a, b);
-    // a += (a < -FP_PI) ? FP_2PI : 0;
-    // c = (b > FP_PI) ? FP_2PI : 0.0;
-    // b -= (b > FP_PI ? FP_2PI : 0.0);
-    
-    // printf("%f (if inline result) =/= %f (if branch result) (%f (inline eval) =/= %f (branch eval))\n", d, f, c, e);
-    
     // Use the sine function
     return fp_sin(a + FP_PI_2);
 }
@@ -235,7 +219,7 @@ float fp_exp(float z)
 
 float fp_log(float a)
 {
-    int t,y, x = bitset(a);
+    int t, y, x = bitset(a);
     
     if (a <= 0)
         return bitset(MIN_VAL);
@@ -476,24 +460,6 @@ void setVector(float x, float y, float z)
     ResultStore[2] = z;
 }
 
-// /* Fast convert of list to matrix */
-// void setMatrix(Matrix *F, fixedp *m, MathStat *ma, FuncStat *f)
-// {
-//     int n, p;
-//
-//     for (n = 0; n < 4; n++)
-//     {
-//         DEBUG_statPlusInt(ma, 1); // for the loop
-//         for (p = 0; p < 4; p++)
-//         {
-//             DEBUG_statPlusInt(ma, 1); // for the loop
-//             (*F).m[p][n] = m[n + 4 * p];
-//
-//             DEBUG_statGroupInt(ma, 1, 0, 1, 0);
-//         }
-//     }
-// }
-
 /* Convert from degrees to radians */
 float deg2rad(float deg)
 {
@@ -526,7 +492,6 @@ float dot(float u[3], float v[3])
 /* Cross product of two vectors */
 void cross(float u[3], float v[3])
 {
-    // {ResultStore[0][0], ResultStore[0][1], ResultStore[0][2]}
     ResultStore[0] = u[1] * v[2] - v[1] * u[2];
     ResultStore[1] = u[2] * v[0] - v[2] * u[0];
     ResultStore[2] = u[0] * v[1] - v[0] * u[1];
@@ -594,8 +559,6 @@ void vecNormalised(float u[3])
             scalarVecMult(256.0, u); // Equivalent of 256 as 1 / sqrt(1.52E-5) is 256
         else
             scalarVecMult(fp_sqrt(1.0 / tempVar), u);
-            // return scalarVecMult(fp_Flt2FP(1. / sqrtf(fp_FP2Flt(tempVar))), u, m, f);
-            // return scalarVecMult(fp_sqrt(fp_div(fp_fp1, tempVar)), u, m, f);
 }
 
 /* Matrix multiplied by a vector */
@@ -1558,9 +1521,9 @@ void createCube(int objectIndex, float size, float transMat[16])
     minVal = -size;
     maxVal = size;
     
-    for (i = 0; i < 4; i += 1)
-        for (j = 0; j < 4; j += 1)
-            printf("T[%i][%i] = %f\n", i, j, transMat[(i * 4 + j)]);
+    // for (i = 0; i < 4; i += 1)
+    //     for (j = 0; j < 4; j += 1)
+    //         printf("T[%i][%i] = %f\n", i, j, transMat[(i * 4 + j)]);
     
     for (i = 0; i < 12; i += 1)
     {
@@ -1604,9 +1567,9 @@ void createPlaneXZ(int objectIndex, float size, float transMat[16])
     minVal = -size;
     maxVal = size;
     
-    for (i = 0; i < 4; i += 1)
-        for (j = 0; j < 4; j += 1)
-            printf("T[%i][%i] = %f\n", i, j, transMat[(i * 4 + j)]);
+    // for (i = 0; i < 4; i += 1)
+    //     for (j = 0; j < 4; j += 1)
+    //         printf("T[%i][%i] = %f\n", i, j, transMat[(i * 4 + j)]);
     
     // Create two triangles:
    for (i = 0; i < 2; i += 1)
