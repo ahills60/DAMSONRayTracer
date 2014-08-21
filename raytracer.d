@@ -83,7 +83,7 @@ void objectIntersection(float ray[6], int objectIdx);
 void sceneIntersection(float ray[6]);
 float traceShadow(float localHitData[18], float direction[3]);
 void reflectRay(float localHitData[18]);
-void refractRay(float localHitData[18], float inverserefreactivity, float squareinverserefractivity);
+void refractRay(float localHitData[18], float inverserefractivity, float squareinverserefractivity);
 void createRay(int x, int y);
 void ambiance(float localHitData[18], float textureColour[3]);
 void diffusion(float localHitData[18], float lightDirection[3], float textureColour[3]);
@@ -1229,7 +1229,7 @@ void reflectRay(float localHitData[18])
     }
 }
 
-void refractRay(float localHitData[18], float inverserefreactivity, float squareinverserefractivity)
+void refractRay(float localHitData[18], float inverserefractivity, float squareinverserefractivity)
 {
     float direction[3], normal[3], c;
     int i;
@@ -1249,10 +1249,10 @@ void refractRay(float localHitData[18], float inverserefreactivity, float square
         direction[i] = ResultStore[i];
     
     c = dot(direction, normal);
-    c = (inverserefreactivity * c) - fp_sqrt(1 - (squareinverserefractivity * (1 - c * c)));
+    c = (inverserefractivity * c) - fp_sqrt(1 - (squareinverserefractivity * (1 - c * c)));
     
     // Direction of refractive ray:
-    scalarVecMult(inverserefreactivity, direction);
+    scalarVecMult(inverserefractivity, direction);
     
     // Copy the result back to the direction
     for (i = 0; i < 3; i += 1)
@@ -1423,7 +1423,7 @@ void specular(float localHitData[18], float lightDirection[3], float textureColo
             vecMult(textureColour, vector);
             for (i = 0; i < 3; i += 1)
                 vector[i] = ResultStore[i];
-            scalarVecMult(distance, ResultStore);
+            scalarVecMult(distance, vector);
         }
     }
     else
