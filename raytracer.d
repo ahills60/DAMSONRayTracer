@@ -1736,7 +1736,7 @@ void populateDefaultScene()
     setMaterial(1, blue, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
     setMaterial(2, green, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
     setMaterial(3, purple, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
-    setMaterial(4, white, 0.1, 0.3, 0.4, 1.4, 1.0, 0.0, 0.0, -1);
+    setMaterial(4, white, 0.1, 0.0, 0.3, 1.4, 1.0, 0.0, 0.0, -1);
     
     noObjects = 5;
     
@@ -1975,51 +1975,55 @@ void draw(float ray[6], int recursion)
         {
             // Yes, we should
             // Get the reflection
-            // Create the new reflected ray:
-            reflectRay(localHitData);
-            // And then extract the result:
-            for (i = 0; i < 6; i += 1)
-                newRay[i] = ResultStore[i];
-            // Call the draw function
-            draw(newRay, recursion - 1);
-            // And extract the result from result store:
-            for (i = 0; i < 3; i += 1)
-                reflectiveColour[i] = ResultStore[i];
-            
             reflection = MaterialDB[localHitData[HitDataObjectIndex]][MaterialReflectivity];
-            
-            scalarVecMult(reflection, reflectiveColour);
-            // Extract this result:
-            for (i = 0; i < 3; i += 1)
-                vector[i] = ResultStore[i];
-            vecAdd(outputColour, vector);
-            // Extract this result
-            for (i = 0; i < 3; i += 1)
-                outputColour[i] = ResultStore[i];
-            
-            // Get the refraction in a similar way:
-            refractRay(localHitData, MaterialDB[localHitData[HitDataObjectIndex]][MaterialInverseRefractivity], MaterialDB[localHitData[HitDataObjectIndex]][MaterialSquareInverseRefractivity]);
-            // And then extract the result:
-            for (i = 0; i < 6; i += 1)
-                newRay[i] = ResultStore[i];
-            // Call the draw function
-            draw(newRay, recursion - 1);
-            // Populate the refractiveColour vector:
-            for (i = 0; i < 3; i += 1)
-                refractiveColour[i] = ResultStore[i];
-            
+            if (reflection > 0.0)
+            {
+                // Create the new reflected ray:
+                reflectRay(localHitData);
+                // And then extract the result:
+                for (i = 0; i < 6; i += 1)
+                    newRay[i] = ResultStore[i];
+                // Call the draw function
+                draw(newRay, recursion - 1);
+                // And extract the result from result store:
+                for (i = 0; i < 3; i += 1)
+                    reflectiveColour[i] = ResultStore[i];
+                
+                scalarVecMult(reflection, reflectiveColour);
+                // Extract this result:
+                for (i = 0; i < 3; i += 1)
+                    vector[i] = ResultStore[i];
+                vecAdd(outputColour, vector);
+                // Extract this result
+                for (i = 0; i < 3; i += 1)
+                    outputColour[i] = ResultStore[i];
+            }
             // Extract the material's opacity:
             refraction = MaterialDB[localHitData[HitDataObjectIndex]][MaterialOpacity];
-            // Compute the scaled refractive colour element:
-            scalarVecMult(refraction, refractiveColour);
-            // Extract the result from the result store:
-            for (i = 0; i < 3; i += 1)
-                vector[i] = ResultStore[i];
-            vecAdd(outputColour, vector);
-            
-            // Before finally saving this as the output colour:
-            for (i = 0; i < 3; i += 1)
-                outputColour[i] = ResultStore[i];
+            if (refraction > 0.0)
+            {
+                // Get the refraction in a similar way:
+                refractRay(localHitData, MaterialDB[localHitData[HitDataObjectIndex]][MaterialInverseRefractivity], MaterialDB[localHitData[HitDataObjectIndex]][MaterialSquareInverseRefractivity]);
+                // And then extract the result:
+                for (i = 0; i < 6; i += 1)
+                    newRay[i] = ResultStore[i];
+                // Call the draw function
+                draw(newRay, recursion - 1);
+                // Populate the refractiveColour vector:
+                for (i = 0; i < 3; i += 1)
+                    refractiveColour[i] = ResultStore[i];
+                
+                // Compute the scaled refractive colour element:
+                scalarVecMult(refraction, refractiveColour);
+                // Extract the result from the result store:
+                for (i = 0; i < 3; i += 1)
+                    vector[i] = ResultStore[i];
+                vecAdd(outputColour, vector);
+                
+                // Before finally saving this as the output colour:
+                for (i = 0; i < 3; i += 1)
+                    outputColour[i] = ResultStore[i];
+            }
         }
         // printf("Hit at: %f, %f, %f\nRay Direction: %f, %f, %f\nLight direction: %f, %f, %f\n", fp_FP2Flt(hit.location.x), fp_FP2Flt(hit.location.y), fp_FP2Flt(hit.location.z), fp_FP2Flt(ray.direction.x), fp_FP2Flt(ray.direction.y), fp_FP2Flt(ray.direction.z), fp_FP2Flt(lightDirection.x), fp_FP2Flt(lightDirection.y), fp_FP2Flt(lightDirection.z));
         // printf("Got to shadow...\n");
