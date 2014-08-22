@@ -100,7 +100,7 @@ void draw(float ray[6], int recursion);
 /* Start functions */
 float fp_sin(float a)
 {
-    float c, absc, absa, output;
+    float c, absc, absa;
     
     // Ensure input within the range of -pi to pi
     if (a > FP_PI)
@@ -1232,12 +1232,14 @@ void reflectRay(float localHitData[18])
 void refractRay(float localHitData[18], float inverserefractivity, float squareinverserefractivity)
 {
     float direction[3], normal[3], c;
-    int i;
+    int i, diri[3];
     
     // Populate the direction and normal vectors:
     for (i = 0; i < 3; i += 1)
     {
         direction[i] = localHitData[HitDataRayDirection + i];
+        diri[i] = bitset(direction[i]);
+        diri[i] >>= 12;
         normal[i] = localHitData[HitDataHitNormal + i];
     }
     
@@ -1275,7 +1277,8 @@ void refractRay(float localHitData[18], float inverserefractivity, float squarei
         // Shift the direction up
         ResultStore[i + 3] = ResultStore[i];
         // Then add the refraction start location
-        ResultStore[i] = localHitData[HitDataHitLocation + i];
+        direction[i] = bitset(diri[i]);
+        ResultStore[i] = localHitData[HitDataHitLocation + i] + direction[i];
     }
 }
 
