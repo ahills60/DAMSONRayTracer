@@ -75,7 +75,6 @@ void getRotateMatrix(float ax, float ay, float az);
 void genTransMatrix(float tx, float ty, float tz);
 void genScaleMatrix(float sx, float sy, float sz);
 void setTriangle(int objectIndex, int triangleIndex, float u[3], float v[3], float w[3]);
-void scalarUVMult(float a, float u[2]);
 void setCamera(float location[3], float view[3], float fov, int width, int height);
 float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float currentDistance);
 void objectIntersection(float ray[6], int objectIdx);
@@ -805,14 +804,6 @@ void setTriangle(int objectIndex, int triangleIndex, float u[3], float v[3], flo
     
 }
 
-// Multiple a UV coordinate by a scalar value
-void scalarUVMult(float a, float u[2])
-{
-    int i;
-    
-    for (i = 0; i < 2; i += 1)
-        ResultStore[i] = a * u[i];
-}
 /*
 // Add two UV coordinates
 void uvAdd(float a[2], float b[2], MathStat *m)
