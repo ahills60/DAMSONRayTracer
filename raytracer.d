@@ -1815,9 +1815,8 @@ void draw(float ray[6], int recursion)
             // Populate the light direction from the light location
             for (i = 0; i < 3; i += 1)
             {
-                hitLocation[i] = localHitData[HitDataHitLocation + i];
                 // Subtract the light location and the hit position:
-                vector[i] = Light[LightVector + i] - hitLocation[i];
+                vector[i] = Light[LightVector + i] - localHitData[HitDataHitLocation + i];
             }
             
             // Then normalise the resultant vector which will be the light direction
