@@ -63,7 +63,6 @@ void scalarVecMult(float a, float u[3]);
 void scalarVecDiv(float a, float u[3]);
 void vecAdd(float u[3], float v[3]);
 void vecSub(float u[3], float v[3]);
-void negVec(float u[3]);
 float vecLength(float u[3]);
 void vecNormalised(float u[3]);
 void matVecMult(float F[16], float u[3]);
@@ -527,14 +526,6 @@ void vecSub(float u[3], float v[3])
     int i;
     for (i = 0; i < 3; i += 1)
         ResultStore[i] = u[i] - v[i];
-}
-
-/* -1 * vector */
-void negVec(float u[3])
-{
-    int i;
-    for (i = 0; i < 3; i += 1)
-        ResultStore[i] = -u[i];
 }
 
 /* Get the length of a vector */
@@ -1111,19 +1102,13 @@ void objectIntersection(float ray[6], int objectIdx)
     // Only complete the hit data iff there was an intersection
     if ((nearestIntersection > 0) && ((void) nearestIntersection < (void) FURTHEST_RAY))
     {
-        scalarVecMult(nearestIntersection, dirVec);
-        // Create the two vectors
         for (i = 0; i < 3; i += 1)
         {
-            dirVec[i] = ResultStore[i];
+            // Create the two vectors
+            dirVec[i] *= nearestIntersection;
             location[i] = ray[i];
-        }
-        // Add the two vectors together. The result is stored in the results store.
-        vecAdd(location, dirVec);
-        
-        for (i = 0; i < 3; i += 1)
-        {
-            HitData[HitDataHitLocation + i] = ResultStore[i];
+            // Add the two vectors together.
+            HitData[HitDataHitLocation + i] = location[i] + dirVec[i];
             HitData[HitDataHitNormal + i] = ObjectDB[objectIdx][nearestIdx][Trianglenormcrvmuwmux + i];
             HitData[HitDataRaySource + i] = ray[RaySourcex + i];
             HitData[HitDataRayDirection + i] = ray[RayDirectionx + i];
@@ -1203,27 +1188,21 @@ void reflectRay(float localHitData[18])
     // Populate the direction vector:
     for (i = 0; i < 3; i += 1)
     {
-        direction[i] = localHitData[HitDataRayDirection + i];
+        direction[i] = -localHitData[HitDataRayDirection + i];
         normal[i] = localHitData[HitDataHitNormal + i];
     }
     
     // Based on 2 (n . v) * n - v
-    negVec(direction);
     
-    // Copy the result back to the direction
-    for (i = 0; i < 3; i += 1)
-        direction[i] = ResultStore[i];
-    
-    tempFl = bitset(dot(normal, direction));
+    tempFl = dot(normal, direction);
     tempVar = bitset(tempFl);
     tempVar <<= 1;
     tempFl = bitset(tempVar);
-    scalarVecMult(tempFl, normal);
     
     for (i = 0; i < 3; i += 1)
     {
         // Move the reflection direction:
-        ResultStore[3 + i] = ResultStore[i];
+        ResultStore[3 + i] = tempFl * normal[i];
         // Then add the reflection source:
         ResultStore[i] = localHitData[HitDataHitLocation + i];
     }
@@ -1241,34 +1220,21 @@ void refractRay(float localHitData[18], float inverserefractivity, float squarei
         diri[i] = bitset(direction[i]);
         diri[i] >>= 12;
         normal[i] = localHitData[HitDataHitNormal + i];
+        // Compute the negative vector:
+        direction[i] = -direction[i];
     }
     
-    // Compute the negative vector:
-    negVec(direction);
-    
-    // Copy the result back to the direction
-    for (i = 0; i < 3; i += 1)
-        direction[i] = ResultStore[i];
-    
     c = dot(direction, normal);
-    c = (inverserefractivity * c) - fp_sqrt(1 - (squareinverserefractivity * (1 - c * c)));
+    c = (inverserefractivity * c) - fp_sqrt(1.0 - (squareinverserefractivity * (1.0 - c * c)));
     
-    // Direction of refractive ray:
-    scalarVecMult(inverserefractivity, direction);
-    
-    // Copy the result back to the direction
     for (i = 0; i < 3; i += 1)
-        direction[i] = ResultStore[i];
-    // Then scale the normal
-    scalarVecMult(c, normal);
-    // And copy the result back
-    for (i = 0; i < 3; i += 1)
-        normal[i] = ResultStore[i];
-    // Subtract the two vectors
-    vecSub(normal, direction);
-    // Copy the result back
-    for (i = 0; i < 3; i += 1)
-        normal[i] = ResultStore[i];
+    {
+        // Direction of refractive ray:
+        direction[i] = inverserefractivity * direction[i];
+        // Then scale the normal and subtract the two vectors
+        normal[i] = (c * normal[i]) - direction[i];
+            
+    }
     // Then normalise.
     vecNormalised(normal);
     // Next, create a ray array in the result store.
@@ -1323,17 +1289,16 @@ void ambiance(float localHitData[18], float textureColour[3])
     
     // Check to see if there's a texture
     if (textureColour[0] < 0)
+    {
          // No texture. Apply material colour
         for (i = 0; i < 3; i += 1)
-        {
             RGBChannels[i] += MaterialDB[objIdx][MaterialCompAmbianceColour + i];
-            // printf("Ambiance: RGBChannels[%i] = %f\n", i, RGBChannels[i]);
-        }
+    }
     else
     {
-        scalarVecMult(MaterialDB[objIdx][MaterialAmbiance], textureColour); // Texture. Apply texture colour
+        // Texture. Apply texture colour
         for (i = 0; i < 3; i += 1)
-            RGBChannels[i] += ResultStore[i];
+            RGBChannels[i] += MaterialDB[objIdx][MaterialAmbiance] * textureColour[i];
     }
 }
 
@@ -1360,35 +1325,22 @@ void diffusion(float localHitData[18], float lightDirection[3], float textureCol
         
         // Has a texture been defined?
         if (textureColour[0] < 0)
-        {    
+        {
+            // No texture defined
             for (i = 0; i < 3; i += 1)
-                vector[i] = MaterialDB[hitObjIdx][MaterialLightColour + i];
-             // No texture defined
-            scalarVecMult(distance, vector);
+                RGBChannels[i] += distance * MaterialDB[hitObjIdx][MaterialLightColour + i];
         }
         else
         {
+            // Combination of the texture colour and the material
             // Extract the light colour:
             for (i = 0; i < 3; i += 1)
-                vector[i] = Light[LightColour + i];
-            // Combination of the texture colour and the material
-            vecMult(textureColour, vector);
-            // Extract the result from the result store
-            for (i = 0; i < 3; i += 1)
-                vector[i] = ResultStore[i];
-            
-            scalarVecMult(distance, vector);
+                RGBChannels[i] += distance * Light[LightColour + i] * textureColour[i];
         }
     }
     else 
         // Otherwise, return with nothing
         return;
-    
-    for (i = 0; i < 3; i += 1)
-    {
-        RGBChannels[i] += ResultStore[i];
-        // printf("Diffusion: RGBChannels[%i] = %f\n", i, RGBChannels[i]);
-    }
 }
 
 /* Creates specular effect given a hit, a scene and some light */
@@ -1414,30 +1366,20 @@ void specular(float localHitData[18], float lightDirection[3], float textureColo
         // Has a texture been defined?
         if (textureColour[0] < 0)
         {
+            // No texture defined
             for (i = 0; i < 3; i += 1)
-                vector[i] = MaterialDB[hitObjIdx][MaterialLightColour + i] 
-            scalarVecMult(distance, vector); // No texture defined
+                RGBChannels[i] += distance * MaterialDB[hitObjIdx][MaterialLightColour + i];
         }
         else
         {
             // Extract the light colour
             for (i = 0; i < 3; i += 1)
-                vector[i] = Light[LightColour + i];
-            vecMult(textureColour, vector);
-            for (i = 0; i < 3; i += 1)
-                vector[i] = ResultStore[i];
-            scalarVecMult(distance, vector);
+                RGBChannels[i] += (distance * Light[LightColour + i] * textureColour[i]);
         }
     }
     else
         // Otherwise return with nothing
         return;
-    
-    for (i = 0; i < 3; i += 1)
-    {
-        RGBChannels[i] += ResultStore[i];
-        // printf("Specular: RGBChannels[%i] = %f\n", i, RGBChannels[i]);
-    }
 }
 
 void setMaterial(int materialIdx, float colour[3], float ambiance, float diffusive, float specular, float shininess, float reflectivity, float opacity, float refractivity, int textureIndex)
@@ -1703,19 +1645,17 @@ void getColour(float localHitData[18])
     }
     // V - U
     // Scale with Mu
-    scalarUVMult(localHitData[HitDataMu], uv2);
     // Extract the results
-    uv2[0] = ResultStore[0];
-    uv2[1] = ResultStore[1];
+    uv2[0] *= localHitData[HitDataMu];
+    uv2[1] *= localHitData[HitDataMu];
     
     // W - U
     // Scale with Mv
-    scalarUVMult(localHitData[HitDataMv], uv3);
     // Contents of UV3 in results store. Let's just extract it from there.
     
     // Then add UV1, UV2 and UV3:
-    uv1[0] += uv2[0] + ResultStore[0];
-    uv1[1] += uv2[1] + ResultStore[1];
+    uv1[0] += uv2[0] + localHitData[HitDataMv] * uv3[0];
+    uv1[1] += uv2[1] + localHitData[HitDataMv] * uv3[1];
     
     getTexel(localHitData, uv1);
     // This should return the results within the results store.
@@ -1884,14 +1824,11 @@ void draw(float ray[6], int recursion)
             // Populate the light direction from the light location
             for (i = 0; i < 3; i += 1)
             {
-                vector[i] = Light[LightVector + i];
                 hitLocation[i] = localHitData[HitDataHitLocation + i];
+                // Subtract the light location and the hit position:
+                vector[i] = Light[LightVector + i] - hitLocation[i];
             }
-            // Subtract the light location and the hit position:
-            vecSub(vector, hitLocation);
-            // Take the evaluated subtraction from the result store
-            for (i = 0; i < 3; i += 1)
-                vector[i] = ResultStore[i];
+            
             // Then normalise the resultant vector which will be the light direction
             vecNormalised(vector);
             // Copy the result from the result store
@@ -1920,44 +1857,20 @@ void draw(float ray[6], int recursion)
                 for (i = 0; i < 3; i += 1)
                 {
                     newRay[RayDirectionx + i] = ray[RayDirectionx + i];
-                    // At the same time, extract the ray direction:
-                    vector[i] = ray[RayDirectionx + i];
-                    source[i] = ray[i];
+                    // Recompute the source by adding a little extra to the distance.
+                    // Compute the total distance first, then add the two vectors together:
+                    // Then set this as the new ray's source:
+                    newRay[i] = ((localHitData[HitDataDistance] + 0.001953125) * ray[RayDirectionx + i]) + ray[i]; // .001953125 is eqivalent to 0x80
                 }
-                
-                // Recompute the source by adding a little extra to the distance.
-                // Compute the total distance first:
-                scalarVecMult(localHitData[HitDataDistance] + 0.001953125, vector); // .001953125 is eqivalent to 0x80
-                // Extract the results from the result store:
-                for (i = 0; i < 3; i += 1)
-                    vector[i] = ResultStore[i];
-                // Now add the two vectors together:
-                vecAdd(vector, source);
-                // Then set this as the new ray's source:
-                for (i = 0; i < 3; i += 1)
-                    newRay[i] = ResultStore[i];
                 
                 // Next, emit a ray. Don't reduce the recursion count.
                 draw(newRay, recursion);
                 
-                // The resultant RGB value should be extracted:
+                // The resultant RGB value should be extracted and scaled based on the alpha value.
+                // Next, take the colour and previous alpha value and compute the product,
+                // Then add the two components together and the result is the texture colour:
                 for (i = 0; i < 3; i += 1)
-                    textureColour[i] = ResultStore[i];
-                // Scale based on the alpha value:
-                scalarVecMult(1 - alpha, textureColour);
-                // And extract the result:
-                for (i = 0; i < 3; i += 1)
-                    textureColour[i] = ResultStore[i];
-                
-                // Next, take the colour and previous alpha value and compute the product:
-                scalarVecMult(alpha, colour);
-                for (i = 0; i < 3; i += 1)
-                    vector[i] = ResultStore[i];
-                // Add the two components together:
-                vecAdd(vector, textureColour);
-                // Then this is the texture colour:
-                for (i = 0; i < 3; i += 1)
-                    textureColour[i] = ResultStore[i];
+                    textureColour[i] = ((1 - alpha) * ResultStore[i]) + (alpha * colour[i]);
             }
             else
                 for (i = 0; i < 3; i += 1)
@@ -1990,16 +1903,10 @@ void draw(float ray[6], int recursion)
                 draw(newRay, recursion - 1);
                 // And extract the result from result store:
                 for (i = 0; i < 3; i += 1)
-                    reflectiveColour[i] = ResultStore[i];
-                
-                scalarVecMult(reflection, reflectiveColour);
-                // Extract this result:
-                for (i = 0; i < 3; i += 1)
-                    vector[i] = ResultStore[i];
-                vecAdd(outputColour, vector);
-                // Extract this result
-                for (i = 0; i < 3; i += 1)
-                    outputColour[i] = ResultStore[i];
+                {
+                    reflectiveColour[i] = reflection * ResultStore[i];
+                    outputColour[i] = outputColour[i] + reflectiveColour[i];
+                }
             }
             // Extract the material's opacity:
             refraction = MaterialDB[localHitData[HitDataObjectIndex]][MaterialOpacity];
@@ -2014,18 +1921,10 @@ void draw(float ray[6], int recursion)
                 draw(newRay, recursion - 1);
                 // Populate the refractiveColour vector:
                 for (i = 0; i < 3; i += 1)
-                    refractiveColour[i] = ResultStore[i];
-                
-                // Compute the scaled refractive colour element:
-                scalarVecMult(refraction, refractiveColour);
-                // Extract the result from the result store:
-                for (i = 0; i < 3; i += 1)
-                    vector[i] = ResultStore[i];
-                vecAdd(outputColour, vector);
-                
-                // Before finally saving this as the output colour:
-                for (i = 0; i < 3; i += 1)
-                    outputColour[i] = ResultStore[i];
+                {
+                    refractiveColour[i] = refraction * ResultStore[i];
+                    outputColour[i] = outputColour[i] + refractiveColour[i];
+                }
             }
         }
         // printf("Hit at: %f, %f, %f\nRay Direction: %f, %f, %f\nLight direction: %f, %f, %f\n", fp_FP2Flt(hit.location.x), fp_FP2Flt(hit.location.y), fp_FP2Flt(hit.location.z), fp_FP2Flt(ray.direction.x), fp_FP2Flt(ray.direction.y), fp_FP2Flt(ray.direction.z), fp_FP2Flt(lightDirection.x), fp_FP2Flt(lightDirection.y), fp_FP2Flt(lightDirection.z));
