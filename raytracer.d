@@ -1193,7 +1193,7 @@ void reflectRay(float localHitData[18])
     for (i = 0; i < 3; i += 1)
     {
         // Move the reflection direction:
-        ResultStore[3 + i] = tempFl * normal[i];
+        ResultStore[RayDirectionx + i] = (tempFl * normal[i]) - direction[i];
         // Then add the reflection source:
         ResultStore[i] = localHitData[HitDataHitLocation + i];
     }
@@ -1232,7 +1232,7 @@ void refractRay(float localHitData[18], float inverserefractivity, float squarei
     for (i = 0; i < 3; i += 1)
     {
         // Shift the direction up
-        ResultStore[i + 3] = ResultStore[i];
+        ResultStore[i + RayDirectionx] = ResultStore[i];
         // Then add the refraction start location
         direction[i] = bitset(diri[i]);
         ResultStore[i] = localHitData[HitDataHitLocation + i] + direction[i];
@@ -1352,7 +1352,7 @@ void specular(float localHitData[18], float lightDirection[3], float textureColo
         if (dotProduct < 0)
             return;
         
-        distance = fp_pow(dotProduct, MaterialDB[hitObjIdx][MaterialShininess]) * MaterialDB[hitObjIdx][MaterialSpecular]);
+        distance = fp_pow(dotProduct, MaterialDB[hitObjIdx][MaterialShininess]) * MaterialDB[hitObjIdx][MaterialSpecular];
             
         // Has a texture been defined?
         if (textureColour[0] < 0)
@@ -1670,7 +1670,7 @@ void populateDefaultScene()
     setMaterial(1, blue, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
     setMaterial(2, green, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
     setMaterial(3, purple, 0.1, 0.5, 0.4, 2.0, 0.0, 0.0, 1.4, -1);
-    setMaterial(4, white, 0.1, 0.0, 0.3, 1.4, 1.0, 0.0, 0.0, -1);
+    setMaterial(4, white, 0.1, 0.0, 0.9, 32.0, 0.6, 0.0, 1.4, -1);
     
     noObjects = 5;
     
