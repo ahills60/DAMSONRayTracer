@@ -1947,10 +1947,23 @@ int main(void)
     
     printf("Initialising light source...\n");
     
-    // Set the light source:
-    Light[LightVector + 0] = -1.0;
-    Light[LightVector + 1] =  4.0;
-    Light[LightVector + 2] =  4.0;
+    // Global Lighting flag:
+    Light[LightGlobalFlag] = 0;
+    
+    if ((void) Light[LightGlobalFlag] == (void) 0)
+    {
+        // Set the light source coordinates:
+        Light[LightVector + 0] = -1.0;
+        Light[LightVector + 1] =  4.0;
+        Light[LightVector + 2] =  4.0;
+    }
+    else
+    {
+        // Set the light direction
+        Light[LightVector + 0] = -0.441128773;
+        Light[LightVector + 1] =  0.514650235;
+        Light[LightVector + 2] =  0.735214622;
+    }
     
     // White light:
     Light[LightColour + 0] =  1.0;
@@ -1959,9 +1972,6 @@ int main(void)
     
     // Shadow factor:
     Light[LightShadowFactor] = 0.3;
-    
-    // Global Lighting flag:
-    Light[LightGlobalFlag] = 0;
     
     printf("Initialising camera...\n");
     // Now initialise the camera:
