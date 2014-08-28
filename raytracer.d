@@ -130,12 +130,12 @@ float fp_cos(float a)
 float fp_exp(float z) 
 {
     int t;
-    int x = bitset(z);
+    int x = (void) z;
     int y = 0x00010000;  /* 1.0 */
     
     // Bound to a maximum if larger than ln(0.5 * 32768)
     if (x > 0x000A65AE)
-        return bitset(MAX_VAL);
+        return (void) MAX_VAL;
     
     // Fix for negative values.
     if (x < 0)
@@ -212,15 +212,16 @@ float fp_exp(float z)
     }
     // This is does the same thing:
     y += ((y >> 8) * x) >> 8;
-    return bitset(y);
+    z = (void) y;
+    return z;
 }
 
 float fp_log(float a)
 {
-    int t, y, x = bitset(a);
+    int t, y, x = (void) a;
     
     if (a <= 0)
-        return bitset(MIN_VAL);
+        return (void) MIN_VAL;
 
     y = 0xa65af;
     if(x < 0x00008000)
@@ -292,7 +293,8 @@ float fp_log(float a)
      }
     x = 0x80000000 - x;
     y -= x >> 15;
-    return bitset(y);
+    a = (void) y;
+    return a;
 }
 
 float fp_pow(float a, float b)
@@ -322,7 +324,7 @@ int fp_powi(int a, int b)
 
 float fp_sqrt(float ina)
 {
-    int a = bitset(ina);
+    int a = (void) ina;
     int im, p = -16;
     int i, k = 0;
     int longNum;
@@ -426,19 +428,14 @@ float fp_sqrt(float ina)
     */
     
     // Andrew special:
-    output = bitset(k);
+    output = (void) k;
     output += ina / output;
-    k = bitset(output);
-    k >>= 1;
-    output = bitset(k);
+    output = (void)((void) output >> 1);
     output += ina / output;
-    k = bitset(output);
-    k >>= 1;
+    output = (void)((void) output >> 1);
     
     // k >>= 1;
     // k = (k + ((longNum << 2) / k) + 2) >> 2;
-    
-    output = bitset(k);
     
     return output;
 }
@@ -751,7 +748,7 @@ void setTriangle(int objectIndex, int triangleIndex, float u[3], float v[3], flo
             domIdx = 2;
     }
     
-    ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] = bitset(domIdx);
+    ObjectDB[objectIndex][triangleIndex][TriangleDominantAxisIdx] = (void) domIdx;
     
     // Use the array to quickly resolve modulo.
     uIdx = DomMod[domIdx + 1];
@@ -822,7 +819,7 @@ void uvSub(float a[2], float b[2], MathStat *m)
 void setCamera(float location[3], float view[3], float fov, int width, int height)
 {
     float vertical[3], horizontal[3], up[3] = {0, 1.0, 0}, ar, fovh, dfovardw, fovar, dfovdh;
-    int i, temp;
+    int i;
     
     cross(view, up);
     for (i = 0; i < 3; i += 1)
@@ -832,17 +829,13 @@ void setCamera(float location[3], float view[3], float fov, int width, int heigh
     for (i = 0; i < 3; i += 1)
         vertical[i] = ResultStore[i];
     
-    temp = bitset(fov);
-    temp >>= 1;
-    fovh = bitset(temp);
+    fovh = (void)((void) fov >> 1);
     fovh = deg2rad(fovh);
     
     // Now calcualte aspect ratio
     ar = (float) width / (float) height;
     
-    temp = bitset(ar);
-    temp <<= 1;
-    dfovardw = bitset(temp);
+    dfovardw = (void)((void) ar << 1);
     dfovardw *= fovh;
     dfovardw /= (float) width;
     
@@ -876,7 +869,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     int shift1, msb1, msb2, bitdiff1, biteval, denomi, numeri, cmpopti;
     int tempVar1, tempVar2;
     
-    int dominantAxisIdx = bitset(ObjectDB[objectIdx][triangleIdx][TriangleDominantAxisIdx]);
+    int dominantAxisIdx = (void) ObjectDB[objectIdx][triangleIdx][TriangleDominantAxisIdx];
     
     // Determine if an error occurred when preprocessing this triangle:
     if (dominantAxisIdx > 2 || dominantAxisIdx < 0)
@@ -899,13 +892,13 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     
     // Compute the denominator:
     denom = dk + (ObjectDB[objectIdx][triangleIdx][TriangleNUDom] * du) + (ObjectDB[objectIdx][triangleIdx][TriangleNVDom] * dv);
-    denomi = bitset(denom);
+    denomi = (void) denom;
     if (denomi < 0x4 && denomi > -0x4)
         return -1;
     
     numer = ObjectDB[objectIdx][triangleIdx][TriangleNDDom] - ok - (ObjectDB[objectIdx][triangleIdx][TriangleNUDom] * ou) - (ObjectDB[objectIdx][triangleIdx][TriangleNVDom] * ov);
     
-    numeri = bitset(numer);
+    numeri = (void) numer;
     
     if (numeri == 0)
         return -1;
@@ -914,7 +907,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
         return -1;
     
     // Locate the MSB of the numerator:
-    tempVar1 = bitset(fabs(numer));
+    tempVar1 = (void) fabs(numer);
     msb1 = 0;
     if (tempVar1 & 0xFFFF0000)
     {
@@ -945,7 +938,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     msb1 += tempVar1;
     
     // Then do the same for the denominator:
-    tempVar1 = bitset(fabs(denom));
+    tempVar1 = (void) fabs(denom);
     msb2 = 0;
     if (tempVar1 & 0xFFFF0000)
     {
@@ -990,13 +983,11 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     else
     {
         denomi <<= bitdiff1;
-        tempFl = bitset(denomi);
+        tempFl = (void) denomi;
         dist = numer / tempFl;
         // Early exit:
-        tempVar1 = bitset(currentDistance);
-        tempVar1 >>= bitdiff1;
-        tempFl = bitset(tempVar1);
-        if (tempFl < dist)
+        currentDistance = (void)((void) currentDistance >> bitdiff1);
+        if (currentDistance < dist)
             return -1;
     }
     
@@ -1012,25 +1003,17 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     }
     else
     {
-        tempVar1 = bitset(ou);
-        tempVar2 = bitset(au);
-        tempVar1 >>= bitdiff1;
-        tempVar2 >>= bitdiff1;
-        tempFl = bitset(tempVar1);
-        tempFl2 = bitset(tempVar2);
+        tempFl = (void)((void) ou >> bitdiff1);
+        tempFl2 = (void)((void) au >> bitdiff1);
         hu = tempFl + (dist * du) - tempFl2;
-        tempVar1 = bitset(ov);
-        tempVar2 = bitset(av);
-        tempVar1 >>= bitdiff1;
-        tempVar2 >>= bitdiff1;
-        tempFl = bitset(tempVar1);
-        tempFl2 = bitset(tempVar2);
+        tempFl = (void)((void) ov >> bitdiff1);
+        tempFl2 = (void)((void) av >> bitdiff1);
         hv = tempFl + (dist * dv) - tempFl2;
     }
     
     beta = (hv * ObjectDB[objectIdx][triangleIdx][TriangleBUDom]) + (hu * ObjectDB[objectIdx][triangleIdx][TriangleBVDom]);
     cmpopti = EPS + (biteval ? 0x10000 : (0x10000 >> bitdiff1));
-    cmpopt = bitset(cmpopti);
+    cmpopt = (void) cmpopti;
     
     // If negative, exit early
     if (beta < 0 || beta > cmpopt)
@@ -1055,7 +1038,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
 
 void objectIntersection(float ray[6], int objectIdx)
 {
-    float Mu, Mv, intersectionPoint, nearestIntersection = bitset(FURTHEST_RAY), epseq = bitset(EPS);
+    float Mu, Mv, intersectionPoint, nearestIntersection = (void) FURTHEST_RAY, epseq = (void) EPS;
     int n, i, nearestIdx, bitshift, nearestbitshift = 32;
     float dirVec[3], normVec[3], location[3];
     
@@ -1105,9 +1088,9 @@ void objectIntersection(float ray[6], int objectIdx)
         HitData[HitDataMu] = Mu;
         HitData[HitDataMv] = Mv;
         // printf("NI: %f Mu: %f, Mv: %f\n", nearestIntersection, Mu, Mv);
-        HitData[HitDatabitshift] = bitset(nearestbitshift);
-        HitData[HitDataTriangleIndex] = bitset(nearestIdx);
-        HitData[HitDataObjectIndex] = bitset(objectIdx);
+        HitData[HitDatabitshift] = (void) nearestbitshift;
+        HitData[HitDataTriangleIndex] = (void) nearestIdx;
+        HitData[HitDataObjectIndex] = (void) objectIdx;
     }
     else
         HitData[HitDataObjectIndex] = -1;
@@ -1118,7 +1101,7 @@ void sceneIntersection(float ray[6])
     int n, i;
     float nearestHit[18];
     
-    nearestHit[HitDataDistance] = bitset(FURTHEST_RAY);
+    nearestHit[HitDataDistance] = (void) FURTHEST_RAY;
     
     for (n = 0; n < noObjects; n += 1)
     {
@@ -1142,7 +1125,7 @@ float traceShadow(float localHitData[18], float direction[3])
     float ray[6];
     
     int n, m;
-    float tempDist = bitset(FURTHEST_RAY);
+    float tempDist = (void) FURTHEST_RAY;
     
     // Populate the ray vector
     for (n = 0; n < 3; n += 1)
@@ -1182,10 +1165,7 @@ void reflectRay(float localHitData[18])
     
     // Based on 2 (n . v) * n - v
     
-    tempFl = dot(normal, direction);
-    tempVar = bitset(tempFl);
-    tempVar <<= 1;
-    tempFl = bitset(tempVar);
+    tempFl = (void)((void) dot(normal, direction) << 1);
     
     for (i = 0; i < 3; i += 1)
     {
@@ -1205,7 +1185,7 @@ void refractRay(float localHitData[18], float inverserefractivity, float squarei
     for (i = 0; i < 3; i += 1)
     {
         direction[i] = localHitData[HitDataRayDirection + i];
-        diri[i] = bitset(direction[i]);
+        diri[i] = (void) direction[i];
         diri[i] >>= 12;
         normal[i] = localHitData[HitDataHitNormal + i];
         // Compute the negative vector:
@@ -1231,7 +1211,7 @@ void refractRay(float localHitData[18], float inverserefractivity, float squarei
         // Shift the direction up
         ResultStore[i + RayDirectionx] = ResultStore[i];
         // Then add the refraction start location
-        direction[i] = bitset(diri[i]);
+        direction[i] = (void) diri[i];
         ResultStore[i] = localHitData[HitDataHitLocation + i] + direction[i];
     }
 }
@@ -1273,7 +1253,7 @@ void createRay(int x, int y)
 /* Creates ambiance effect given a hit, a scene and some light */
 void ambiance(float localHitData[18], float textureColour[3])
 {
-    int i, objIdx = bitset(localHitData[HitDataObjectIndex]);
+    int i, objIdx = (void) localHitData[HitDataObjectIndex];
     
     // Check to see if there's a texture
     if (textureColour[0] < 0)
@@ -1294,7 +1274,7 @@ void ambiance(float localHitData[18], float textureColour[3])
 void diffusion(float localHitData[18], float lightDirection[3], float textureColour[3])
 {
     float vector[3], distance, dotProduct;
-    int i, hitObjIdx = bitset(localHitData[HitDataObjectIndex]);
+    int i, hitObjIdx = (void) localHitData[HitDataObjectIndex];
     
     if (MaterialDB[hitObjIdx][MaterialDiffusive] > 0)
     {
@@ -1334,7 +1314,7 @@ void diffusion(float localHitData[18], float lightDirection[3], float textureCol
 /* Creates specular effect given a hit, a scene and some light */
 void specular(float localHitData[18], float lightDirection[3], float textureColour[3])
 {
-    int i, hitObjIdx = bitset(localHitData[HitDataObjectIndex]);
+    int i, hitObjIdx = (void) localHitData[HitDataObjectIndex];
     float vector[3], dotProduct, distance;
     
     if (MaterialDB[hitObjIdx][MaterialSpecular] > 0)
@@ -1407,7 +1387,7 @@ void createCube(int objectIndex, float size, float transMat[16])
 {
     float u[3], v[3], w[3];
     float minVal, maxVal;
-    int i, j, isize = bitset(size);
+    int i, j;
     
     int pattern[108] = {0, 0, 0, // T1
                         1, 0, 0,
@@ -1447,8 +1427,7 @@ void createCube(int objectIndex, float size, float transMat[16])
                         0, 1, 0};
     
     // Halve the size:
-    isize = isize >> 1;
-    size = bitset(isize);
+    size = (void)((void) size >> 1);
     
     // Points will always be at the extremes:
     minVal = -size;
@@ -1483,7 +1462,7 @@ void createPlaneXZ(int objectIndex, float size, float transMat[16])
 {
     float u[3] = {0, 0, 0}, v[3] = {0, 0, 0}, w[3] = {0, 0, 0};
     float minVal, maxVal;
-    int i, j, sizei = bitset(size);
+    int i, j;
     
     // Create a pattern
     int pattern[12] = {1, 1,
@@ -1494,8 +1473,7 @@ void createPlaneXZ(int objectIndex, float size, float transMat[16])
                        0, 0};
     
     // Halve the size
-    sizei >>= 1;
-    size = bitset(sizei);
+    size = (void)((void) size >> 1);
     
     minVal = -size;
     maxVal = size;
@@ -1536,7 +1514,7 @@ void getTexel(float localHitData[18], float uv[2])
 {
     float c1[3], c2[3], c3[3], c4[3];
     float URem, VRem, alpha, uvf0, uvf1;
-    int b1, b2, b3, b4, uv0 = bitset(uv[0]), uv1 = bitset(uv[1]);
+    int b1, b2, b3, b4, uv0 = (void) uv[0], uv1 = (void) uv[1];
     float a1, a2, a3, a4;
     int TextUPos, TextVPos, i;
     
@@ -1545,14 +1523,14 @@ void getTexel(float localHitData[18], float uv[2])
     uv0 &= 0x0000FFFF;
     uv1 += 0x03E80000;
     uv1 &= 0x0000FFFF;
-    uvf0 = bitset(uv0);
-    uvf1 = bitset(uv1);
+    uvf0 = (void) uv0;
+    uvf1 = (void) uv1;
     
     uv[0] = uvf0 * (TextureDB[MaterialDB[localHitData[HitDataObjectIndex]][MaterialTextureIndex]][TextureWidth] << 16);
     uv[1] = uvf1 * (TextureDB[MaterialDB[localHitData[HitDataObjectIndex]][MaterialTextureIndex]][TextureHeight] << 16);
     
-    uv0 = bitset(uv[0]);
-    uv1 = bitset(uv[1]);
+    uv0 = (void) uv[0];
+    uv1 = (void) uv[1];
     
     // Get the whole number pixel value
     TextUPos = uv0 >> 16;
@@ -1562,8 +1540,8 @@ void getTexel(float localHitData[18], float uv[2])
     uv1 &= 0x0000FFFF;
          
     // Compute weights from the fractional part
-    URem = bitset(uv0);
-    VRem = bitset(uv1);
+    URem = (void) uv0;
+    VRem = (void) uv1;
     
     // Border checks:
     // Offset (0, 0)
@@ -1624,7 +1602,7 @@ void getTexel(float localHitData[18], float uv[2])
 void getColour(float localHitData[18])
 {
     float uv1[2], uv2[2], uv3[2];
-    int i, hitObjIdx = bitset(localHitData[HitDataObjectIndex]), hitTriIdx = bitset(localHitData[HitDataTriangleIndex]);
+    int i, hitObjIdx = (void) localHitData[HitDataObjectIndex], hitTriIdx = (void) localHitData[HitDataTriangleIndex];
     for (i = 0; i < 2; i += 1)
     {
         uv1[i] = ObjectDB[hitObjIdx][hitTriIdx][TriangleAu + i];
@@ -1791,7 +1769,7 @@ void draw(float ray[6], int recursion)
     // Check for an intersection. Results are stored in the hit data array
     sceneIntersection(ray);
     
-    hitObjIdx = bitset(HitData[HitDataObjectIndex]);
+    hitObjIdx = (void) HitData[HitDataObjectIndex];
     
     // Determine whether there was a hit. Otherwise default.
     if (hitObjIdx >= 0)
@@ -1824,7 +1802,7 @@ void draw(float ray[6], int recursion)
         }
         
         // Determine whether this has a texture or not
-        i = bitset(MaterialDB[hitObjIdx][MaterialTextureIndex]);
+        i = (void) MaterialDB[hitObjIdx][MaterialTextureIndex];
         if (i >= 0)
         {
             // The getColour function doesn't need anything but the hit data to be passed to it.
@@ -1930,7 +1908,7 @@ void EnterExternalData(int, int, int, int);
 // Functions start here:
 int main(void)
 {
-    float clocation[3] = {1.0, 2.0, 4.0}, cTheta = bitset(0x0001C4A8), cPhi = bitset(0xFFFE6DDE), cview[3], ray[6];
+    float clocation[3] = {1.0, 2.0, 4.0}, cTheta = (void) 0x0001C4A8, cPhi = (void) 0xFFFE6DDE, cview[3], ray[6];
     int i, x, y;
     
     for (i = 0; i < MAX_OBJECTS; i += 1)
