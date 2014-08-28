@@ -461,14 +461,11 @@ void setVector(float x, float y, float z)
 /* Convert from degrees to radians */
 float deg2rad(float deg)
 {
-    int temp;
     // Equivalent to deg * pi / 180, but with increased resolution:
     deg *= 4.468042886;
     
     // shift
-    temp = bitset(deg);
-    temp >>= 8;
-    deg = bitset(temp);
+    deg = (void)((void) deg >> 8);
     // (deg * 256 * pi / 180) / 256
     return deg; // * M_PI / 180.0;
 }
