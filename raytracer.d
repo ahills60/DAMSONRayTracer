@@ -1776,7 +1776,7 @@ void populateScene()
 /* And then the standard draw function that's been previously constructed */
 void draw(float ray[6], int recursion)
 {
-    float outputColour[3], reflectiveColour[3], refractiveColour[3], textureColour[3] = {-1.0, -1.0, -1.0};
+    float outputColour[3], textureColour[3] = {-1.0, -1.0, -1.0};
     float vector[3], hitLocation[3], localHitData[18], lightDirection[3];
     float colour[3], alpha;
     float reflection, refraction;
@@ -1893,10 +1893,7 @@ void draw(float ray[6], int recursion)
                 draw(newRay, recursion - 1);
                 // And extract the result from result store:
                 for (i = 0; i < 3; i += 1)
-                {
-                    reflectiveColour[i] = reflection * ResultStore[i];
-                    outputColour[i] = outputColour[i] + reflectiveColour[i];
-                }
+                    outputColour[i] = outputColour[i] + (reflection * ResultStore[i]);
             }
             // Extract the material's opacity:
             refraction = MaterialDB[localHitData[HitDataObjectIndex]][MaterialOpacity];
@@ -1911,10 +1908,7 @@ void draw(float ray[6], int recursion)
                 draw(newRay, recursion - 1);
                 // Populate the refractiveColour vector:
                 for (i = 0; i < 3; i += 1)
-                {
-                    refractiveColour[i] = refraction * ResultStore[i];
-                    outputColour[i] = outputColour[i] + refractiveColour[i];
-                }
+                    outputColour[i] = outputColour[i] + (refraction * ResultStore[i]);
             }
         }
         // printf("Hit at: %f, %f, %f\nRay Direction: %f, %f, %f\nLight direction: %f, %f, %f\n", fp_FP2Flt(hit.location.x), fp_FP2Flt(hit.location.y), fp_FP2Flt(hit.location.z), fp_FP2Flt(ray.direction.x), fp_FP2Flt(ray.direction.y), fp_FP2Flt(ray.direction.z), fp_FP2Flt(lightDirection.x), fp_FP2Flt(lightDirection.y), fp_FP2Flt(lightDirection.z));
