@@ -217,7 +217,7 @@ float fp_log(float a)
     
     if (a <= 0)
         return (void) MIN_VAL;
-
+    
     y = 0xa65af;
     if(x < 0x00008000)
     {
@@ -288,20 +288,18 @@ float fp_log(float a)
      }
     x = 0x80000000 - x;
     y -= x >> 15;
-    a = (void) y;
-    return a;
+    return (void) y;
 }
 
 float fp_pow(float a, float b)
 {
-    float output;
-    
     if (a <= 0.0)
         return 0.0;
     
-    output = fp_exp(fp_log(a) * b);
+    if ((void) b == (void) 0)
+        return 1.0;
     
-    return output;
+    return fp_exp(fp_log(a) * b);
 }
 
 int fp_powi(int a, int b)
@@ -326,9 +324,7 @@ float fp_sqrt(float ina)
     float output;
     
     if (a <= 0)
-    {
         return 0;
-    }
     
     // Get MSB
     i = a;
@@ -362,13 +358,9 @@ float fp_sqrt(float ina)
     // Lookup the sqrt multiplier based on bits MSB + 0 to MSB + 3 then
     // correct odd MSB positions using sqrt(2). Sqrt(2) is roughly 92682
     if (p >= -11)
-    {
         i = a >> (11 + p);
-    }
     else
-    {
         i = a << (-11 - p);
-    }
     
     im = (i & 31) - 1;
     if (im >= 0)
@@ -377,62 +369,30 @@ float fp_sqrt(float ina)
         if ((p & 1) > 0)
         {
             k = k * 92682;
-            if (k < 0)
-            {
-                k &= 0x7FFFFFFF;
-                k >>= 16;
-                k |= 0x8000;
-            }
-            else
-                k = (k >> 16);
+            k = (k < 0) ? (((k & 0x7FFFFFFF) >> 16) | 0x8000) : k >> 16;
         }
     }
     
-    if ((p & 1) > 0)
-    {
+    if (p & 1)
         k += 92682; // add sqrt(2)
-    }
     else
-    {
         k += 0x10000; // add 1
-    }
     
     // Shift the square root estimate based on the halved MSB position
     if (p >= 0)
-    {
         k <<= (p >> 1);
-    }
     else
-    {
         k >>= ((1 - p) >> 1);
-    }
     
     // // Do two Newtonian square root iteration steps to increase precision
-    // int64 longNum = (int64)(a) << 16;
-    // k += (fixedp) (longNum / k);
-    // k = (k + (fixedp) ((longNum << 2) / k) + 2) >> 2;
-    
-    // longNum = a;
-    /*
-    printf("before: %d (a = %d)\n", k, a);
-    k += a / k;
-    printf("after: %d (a / k: %d)\n", k, a / k);
-    k >>= 1;
-    k += a / k;
-    k >>= 1;
-    */
     
     // Andrew special:
     output = (void) k;
     output += ina / output;
     output = (void)((void) output >> 1);
     output += ina / output;
-    output = (void)((void) output >> 1);
     
-    // k >>= 1;
-    // k = (k + ((longNum << 2) / k) + 2) >> 2;
-    
-    return output;
+    return (void)((void) output >> 1);
 }
 
 /* Set the UV coordinates */
@@ -519,7 +479,6 @@ void vecSub(float u[3], float v[3])
 /* Get the length of a vector */
 float vecLength(float u[3])
 {
-    
     return fp_sqrt(u[0] * u[0] + u[1] * u[1] + u[2] * u[2]);
 }
 
@@ -790,7 +749,6 @@ void setTriangle(int objectIndex, int triangleIndex, float u[3], float v[3], flo
     
     // Finally, increment the number of triangles statistic.
     noTriangles[objectIndex] += 1;
-    
 }
 
 /*
@@ -815,7 +773,6 @@ void setCamera(float location[3], float view[3], float fov, int width, int heigh
 {
     float vertical[3], horizontal[3], up[3] = {0, 1.0, 0}, ar, fovh, dfovardw, fovar, dfovdh;
     int i;
-    
     cross(view, up);
     for (i = 0; i < 3; i += 1)
         horizontal[i] = ResultStore[i];
@@ -859,7 +816,7 @@ void setCamera(float location[3], float view[3], float fov, int width, int heigh
 float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float currentDistance)
 {
     int ku, kv;
-    float dk, du, dv, ok, ou, ov, denom, dist, hu, hv, au, av, numer, beta, gamma, cmpopt, tempFl, tempFl2;
+    float dk, du, dv, ok, ou, ov, denom, dist, hu, hv, au, av, numer, beta, gamma, cmpopt;
     
     int shift1, msb1, msb2, bitdiff1, biteval, denomi, numeri, cmpopti;
     int tempVar1, tempVar2;
@@ -869,7 +826,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     // Determine if an error occurred when preprocessing this triangle:
     if (dominantAxisIdx > 2 || dominantAxisIdx < 0)
         return -1;
-    
+
     // Now get the correct axes and offset using the modulo vector:
     ku = DomMod[dominantAxisIdx + 1];
     kv = DomMod[dominantAxisIdx + 2];
@@ -897,6 +854,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     
     if (numeri == 0)
         return -1;
+    
     // Do a sign check
     if ((denomi & 0x80000000) ^ (numeri & 0x80000000))
         return -1;
@@ -978,8 +936,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     else
     {
         denomi <<= bitdiff1;
-        tempFl = (void) denomi;
-        dist = numer / tempFl;
+        dist = numer / (void) denomi;
         // Early exit:
         currentDistance = (void)((void) currentDistance >> bitdiff1);
         if (currentDistance < dist)
@@ -998,12 +955,8 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     }
     else
     {
-        tempFl = (void)((void) ou >> bitdiff1);
-        tempFl2 = (void)((void) au >> bitdiff1);
-        hu = tempFl + (dist * du) - tempFl2;
-        tempFl = (void)((void) ov >> bitdiff1);
-        tempFl2 = (void)((void) av >> bitdiff1);
-        hv = tempFl + (dist * dv) - tempFl2;
+        hu = (void)((void) ou >> bitdiff1) + (dist * du) - (void)((void) au >> bitdiff1);
+        hv = (void)((void) ov >> bitdiff1) + (dist * dv) - (void)((void) av >> bitdiff1);
     }
     
     beta = (hv * ObjectDB[objectIdx][triangleIdx][TriangleBUDom]) + (hu * ObjectDB[objectIdx][triangleIdx][TriangleBVDom]);
@@ -1070,11 +1023,8 @@ void objectIntersection(float ray[6], int objectIdx)
     {
         for (i = 0; i < 3; i += 1)
         {
-            // Create the two vectors
-            dirVec[i] *= nearestIntersection;
-            location[i] = ray[i];
-            // Add the two vectors together.
-            HitData[HitDataHitLocation + i] = location[i] + dirVec[i];
+            // Create the two vectors and add the two vectors together.
+            HitData[HitDataHitLocation + i] = ray[i] + (nearestIntersection * dirVec[i]);
             HitData[HitDataHitNormal + i] = ObjectDB[objectIdx][nearestIdx][Trianglenormcrvmuwmux + i];
             HitData[HitDataRaySource + i] = ray[RaySourcex + i];
             HitData[HitDataRayDirection + i] = ray[RayDirectionx + i];
@@ -1095,7 +1045,6 @@ void sceneIntersection(float ray[6])
 {
     int n, i;
     float nearestHit[18];
-    
     nearestHit[HitDataDistance] = (void) FURTHEST_RAY;
     
     for (n = 0; n < noObjects; n += 1)
@@ -1192,11 +1141,8 @@ void refractRay(float localHitData[18], float inverserefractivity, float squarei
     
     for (i = 0; i < 3; i += 1)
     {
-        // Direction of refractive ray:
-        direction[i] = inverserefractivity * direction[i];
-        // Then scale the normal and subtract the two vectors
-        normal[i] = (c * normal[i]) - direction[i];
-            
+        // Direction of refractive ray, then scale the normal and subtract the two vectors
+        normal[i] = (c * normal[i]) - inverserefractivity * direction[i];
     }
     // Then normalise.
     vecNormalised(normal);
@@ -1213,7 +1159,7 @@ void refractRay(float localHitData[18], float inverserefractivity, float squarei
 
 void createRay(int x, int y)
 {
-    float sx = (float) x, sy = (float) y, shorizontal[3], svertical[3], sview[3];
+    float sx = (float) x, sy = (float) y, sview[3];
     int i;
     
     // First scale x and scale y:
@@ -1226,12 +1172,8 @@ void createRay(int x, int y)
     
     // Next, scale horizontal and vertical.
     for (i = 0; i < 3; i += 1)
-    {
-        shorizontal[i] = sx * Camera[CameraHorizontal + i];
-        svertical[i] = sy * Camera[CameraVertical + i];
-        sview[i] = shorizontal[i] + svertical[i] + Camera[CameraView + i];
+        sview[i] = (sx * Camera[CameraHorizontal + i]) + (sy * Camera[CameraVertical + i]) + Camera[CameraView + i];
         // printf("sview[%i] = %f\n", i, sview[i]);
-    }
     
     vecNormalised(sview);
     
@@ -1301,9 +1243,6 @@ void diffusion(float localHitData[18], float lightDirection[3], float textureCol
                 RGBChannels[i] += distance * Light[LightColour + i] * textureColour[i];
         }
     }
-    else 
-        // Otherwise, return with nothing
-        return;
 }
 
 /* Creates specular effect given a hit, a scene and some light */
@@ -1340,9 +1279,6 @@ void specular(float localHitData[18], float lightDirection[3], float textureColo
                 RGBChannels[i] += (distance * Light[LightColour + i] * textureColour[i]);
         }
     }
-    else
-        // Otherwise return with nothing
-        return;
 }
 
 void setMaterial(int materialIdx, float colour[3], float ambiance, float diffusive, float specular, float shininess, float reflectivity, float opacity, float refractivity, int textureIndex)
@@ -1592,12 +1528,14 @@ void getTexel(float localHitData[18], float uv[2])
     }
     else
         ResultStore[3] = 1;
+    
 }
 
 void getColour(float localHitData[18])
 {
     float uv1[2], uv2[2], uv3[2];
     int i, hitObjIdx = (void) localHitData[HitDataObjectIndex], hitTriIdx = (void) localHitData[HitDataTriangleIndex];
+    
     for (i = 0; i < 2; i += 1)
     {
         uv1[i] = ObjectDB[hitObjIdx][hitTriIdx][TriangleAu + i];
@@ -1969,8 +1907,8 @@ int main(void)
         }
     }
     
-    return 0;
     exit(99);
+    return 0;
 }
 
 
