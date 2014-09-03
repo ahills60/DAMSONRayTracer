@@ -39,6 +39,24 @@ int DomMod[5] = {0, 1, 2, 0, 1};
 
 float RGBChannels[3] = {0.0, 0.0, 0.0};
 
+int LOOKUP_EXP1[24] = {
+    65536, 108051, 178145, 293712, 484249, 798392, 1316326, 2170254, 
+    3578144, 5899363, 9726405, 16036130, 26439109, 43590722, 71868951, 
+    118491868, 195360063, 322094291, 531043708, 875543058, 1443526462, 
+    2147483647, 2147483647, 2147483647
+};
+int LOOKUP_EXP2[31] = {
+    -1016, -2016, -3001, -3971, -4925, -5865, -6790, -7701, -8597, -9480, 
+    -10349, -11205, -12047, -12876, -13693, -14497, -15288, -16067, -16834, 
+    -17589, -18332, -19064, -19784, -20494, -21192, -21880, -22556, -23223, 
+    -23879, -24525, -25160
+};
+int LOOKUP_EXP3[31] = {
+    -32, -64, -96, -128, -160, -192, -224, -256, -287, -319, -351, -383, 
+    -415, -446, -478, -510, -542, -573, -605, -637, -669, -700, -732, -764, 
+    -795, -827, -858, -890, -921, -953, -985
+};
+
 int LOOKUP_SQRT[31] = {
     1016, 2017, 3003, 3975, 4934, 5880, 6814, 7735, 8646, 9545, 10433, 
     11312, 12180, 13039, 13888, 14729, 15561, 16384, 17199, 18006, 18806, 
@@ -129,91 +147,68 @@ float fp_cos(float a)
 
 float fp_exp(float z) 
 {
-    int t;
-    int x = (void) z;
-    int y = 0x00010000;  /* 1.0 */
+    int a = (void) z;
+    int absv = a;
+    int im;
+    int i, k, l;
+    float output;
     
-    // Bound to a maximum if larger than ln(0.5 * 32768)
-    if (x > 0x000A65AE)
-        return (void) MAX_VAL;
+    if (a < 0) 
+    {
+        if (a < -700244)
+        {
+            // Bound FPs < ln (0.5 / 65536) to 0
+            if (a < -772244)
+                return 0;
+            else
+                // Bound ln(0.5/65536) < FPs < ln(1.5/65536) to 1
+                return (void) 1;
+        }
+        absv = -a;
+    } 
+    else
+        // Bound FPs greater than ln(0.5 * 32768) to max value
+        if (a > 681390)
+            return (void) 0x7FFFFFFF;
     
-    // Fix for negative values.
-    if (x < 0)
+    i = absv;
+    i >>= 5;
+    
+    im = (i & 31) - 1; // Use bits 5 to 14
+    if (im >= 0)
     {
-        x += 0xb1721; /* 11.0903 */
-        y >>= 16;
+        k = LOOKUP_EXP3[im] & 0xFFFF;
+        i >>= 5;
+        im = (i & 31) - 1; // Use its 15 to 19
+        if (im >= 0)
+        {
+            k *= LOOKUP_EXP2[im] & 0xFFFF;
+            k = (k < 0) ? (((k & 0x7FFFFFFF) >> 15) | 0x00010000) : k >> 15;
+            k = (k + 1) >> 1;
+        }
+    }
+    else
+    {
+        i >>= 5;
+        im = (i & 31) - 1; // Use bits 15 to 19
+        k = (im >= 0) ? LOOKUP_EXP2[im] & 0xFFFF : 0x10000;
+    }
+    im = absv & 31; // Use bits 0 to 4
+    if (im > 0)
+    {
+        k *= 0x10000 - im;
+        k = (k < 0) ? (((k & 0x7FFFFFFF) >> 15) | 0x00010000) : k >> 15;
+        k = (k >> 1) + (k & 1);
     }
     
-    t=x-0x58b91;   /* 5.5452 */ 
-    if (t>=0) 
-    {
-        x=t;
-        y<<=8;
-    }
-    t=x-0x2c5c8;   /* 2.7726 */
-    if (t>=0) 
-    {
-        x=t;
-        y<<=4;
-    }
-    t=x-0x162e4;  /* 1.3863 */
-    if (t>=0) 
-    {
-        x=t;
-        y<<=2;
-    }
-    t=x-0x0b172;  /* 0.6931 */
-    if (t>=0) 
-    {
-        x=t;
-        y<<=1;
-    }
-    t=x-0x067cd;  /* 0.4055 */
-    if (t>=0)
-    {
-        x=t;
-        y+=y>>1;
-    }
-    t=x-0x03920;  /* 0.2231 */
-    if (t>=0)
-    {
-        x=t;
-        y+=y>>2;
-    }
-    t=x-0x01e27;  /* 0.1178 */
-    if (t>=0)
-    {
-        x=t;
-        y+=y>>3;
-    }
-    t=x-0x00f85;  /* 0.0606 */
-    if (t>=0)
-    {
-        x=t;
-        y+=y>>4;
-    }
-    t=x-0x007e1;  /* 0.0308 */
-    if (t>=0) 
-    {
-        x=t;
-        y+=y>>5;
-    }
-    t=x-0x003f8;  /* 0.0155 */
-    if (t>=0) 
-    {
-        x=t;
-        y+=y>>6;
-    }
-    t=x-0x001fe;  /* 0.0078 */
-    if (t>=0) 
-    {
-        x=t;
-        y+=y>>7;
-    }
-    // This is does the same thing:
-    y += ((y >> 8) * x) >> 8;
-    z = (void) y;
-    return z;
+    i >>= 5;
+    im = i & 31; // Use bits 15 to 19
+    
+    // Combine integer exponent and inverse fractional exponent
+    if (a < 0)
+        return (void) k / (void) LOOKUP_EXP1[im];
+    else
+        return (void) LOOKUP_EXP1[im] / (void) k;
 }
 
 float fp_log(float a)
