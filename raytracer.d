@@ -71,6 +71,7 @@ float fp_log(float a);
 float fp_pow(float a, float b);
 int fp_powi(int a, int b);
 float fp_sqrt(float ina);
+float fp_rsqrt(float a);
 void setUVCoord(float u, float v);
 void setVector(float x, float y, float z);
 float deg2rad(float deg);
@@ -395,6 +396,12 @@ float fp_sqrt(float ina)
     return (void)((void) output >> 1);
 }
 
+float fp_rsqrt(float a)
+{
+    float lna = -fp_log(a);
+    return fp_exp((void) ((void) lna >> 1));
+}
+
 /* Set the UV coordinates */
 void setUVCoord(float u, float v)
 {
@@ -496,7 +503,7 @@ void vecNormalised(float u[3])
         if ((void) tempVar == (void) 1)
             scalarVecMult(256.0, u); // Equivalent of 256 as 1 / sqrt(1.52E-5) is 256
         else
-            scalarVecMult(fp_sqrt(1.0 / tempVar), u);
+            scalarVecMult(fp_rsqrt(tempVar), u);
 }
 
 /* Matrix multiplied by a vector */
