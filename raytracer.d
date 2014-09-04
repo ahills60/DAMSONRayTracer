@@ -432,9 +432,9 @@ float deg2rad(float deg)
 /* Vector multiply */
 void vecMult(float u[3], float v[3])
 {
-    int i;
-    for (i = 0; i < 3; i += 1)
-        ResultStore[i] = u[i] * v[i];
+    ResultStore[0] = u[0] * v[0];
+    ResultStore[1] = u[1] * v[1];
+    ResultStore[2] = u[2] * v[2];
 }
 
 /* Dot product of two vectors */
@@ -454,33 +454,33 @@ void cross(float u[3], float v[3])
 /* Scalar multiplication with a vector */
 void scalarVecMult(float a, float u[3])
 {
-    int i;
-    for (i = 0; i < 3; i += 1)
-        ResultStore[i] = a * u[i];
+    ResultStore[0] = a * u[0];
+    ResultStore[1] = a * u[1];
+    ResultStore[2] = a * u[2];
 }
 
 /* Scalar division with a vector */
 void scalarVecDiv(float a, float u[3])
 {
-    int i;
-    for (i = 0; i < 3; i += 1)
-        ResultStore[i] = u[i] / a;
+    ResultStore[0] = u[0] / a;
+    ResultStore[1] = u[1] / a;
+    ResultStore[2] = u[2] / a;
 }
 
 /* Vector addition */
 void vecAdd(float u[3], float v[3])
 {
-    int i;
-    for (i = 0; i < 3; i += 1)
-        ResultStore[i] = u[i] + v[i];
+    ResultStore[0] = u[0] + v[0];
+    ResultStore[1] = u[1] + v[1];
+    ResultStore[2] = u[2] + v[2];
 }
 
 /* Vector subtraction */
 void vecSub(float u[3], float v[3])
 {
-    int i;
-    for (i = 0; i < 3; i += 1)
-        ResultStore[i] = u[i] - v[i];
+    ResultStore[0] = u[0] - v[0];
+    ResultStore[1] = u[1] - v[1];
+    ResultStore[2] = u[2] - v[2];
 }
 
 // /* Get the length of a vector */
@@ -822,13 +822,8 @@ void setCamera(float location[3], float view[3], float fov, int width, int heigh
 
 float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float currentDistance)
 {
-    int ku, kv;
+    int ku, kv, shift1, msb1, msb2, bitdiff1, biteval, denomi, numeri, cmpopti, tempVar1, tempVar2, dominantAxisIdx = (void) ObjectDB[objectIdx][triangleIdx][TriangleDominantAxisIdx];
     float dk, du, dv, ok, ou, ov, denom, dist, hu, hv, au, av, numer, beta, gamma, cmpopt;
-    
-    int shift1, msb1, msb2, bitdiff1, biteval, denomi, numeri, cmpopti;
-    int tempVar1, tempVar2;
-    
-    int dominantAxisIdx = (void) ObjectDB[objectIdx][triangleIdx][TriangleDominantAxisIdx];
     
     // Determine if an error occurred when preprocessing this triangle:
     if (dominantAxisIdx > 2 || dominantAxisIdx < 0)
@@ -993,7 +988,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
 
 void objectIntersection(float ray[6], int objectIdx)
 {
-    float Mu, Mv, intersectionPoint, nearestIntersection = (void) FURTHEST_RAY, epseq = (void) EPS;
+    float Mu, Mv, intersectionPoint, nearestIntersection = (void) FURTHEST_RAY; //, epseq = (void) EPS;
     int n, i, nearestIdx, bitshift, nearestbitshift = 32;
     float dirVec[3], normVec[3], location[3];
     
@@ -1013,7 +1008,7 @@ void objectIntersection(float ray[6], int objectIdx)
                 normVec[i] = ObjectDB[objectIdx][n][Trianglenormcrvmuwmux + i];
             
             // Determine whether the triangle is front facing.
-            if (dot(normVec, dirVec) < epseq)
+            if ((void) dot(normVec, dirVec) < (void) EPS)
             {
                 // This is better, so save the results of this
                 nearestIdx = n;
@@ -1204,13 +1199,13 @@ void ambiance(float localHitData[18], float textureColour[3])
     {
          // No texture. Apply material colour
         for (i = 0; i < 3; i += 1)
-            RGBChannels[i] += MaterialDB[objIdx][MaterialCompAmbianceColour + i];
+            RGBChannels[i] = MaterialDB[objIdx][MaterialCompAmbianceColour + i];
     }
     else
     {
         // Texture. Apply texture colour
         for (i = 0; i < 3; i += 1)
-            RGBChannels[i] += MaterialDB[objIdx][MaterialAmbiance] * textureColour[i];
+            RGBChannels[i] = MaterialDB[objIdx][MaterialAmbiance] * textureColour[i];
     }
 }
 
@@ -1441,7 +1436,7 @@ void createPlaneXZ(int objectIndex, float size, float transMat[16])
        matVecMult(transMat, w);
        for (j = 0; j < 3; j += 1)
            w[j] = ResultStore[j];
-       if (i == 0)
+       if (!i)
            setTriangle(objectIndex, noTriangles[objectIndex], u, v, w);
        else
            setTriangle(objectIndex, noTriangles[objectIndex], w, v, u);
@@ -1696,15 +1691,12 @@ void draw(float ray[6], int recursion)
     float colour[3], alpha;
     float reflection, refraction;
     float newRay[6], source[3];
-    int i, hitObjIdx = -1;
+    int i, hitObjIdx;
     
     // Default is black. We can add to this (if there's a hit) 
     // or just return it (if there's no object)
     for (i = 0; i < 3; i += 1)
-        {
-            outputColour[i] = 0;
-            RGBChannels[i] = 0;
-        }
+        outputColour[i] = 0;
     
     // Check for an intersection. Results are stored in the hit data array
     sceneIntersection(ray);
