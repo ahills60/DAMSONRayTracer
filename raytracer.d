@@ -81,7 +81,7 @@ void scalarVecMult(float a, float u[3]);
 void scalarVecDiv(float a, float u[3]);
 void vecAdd(float u[3], float v[3]);
 void vecSub(float u[3], float v[3]);
-float vecLength(float u[3]);
+// float vecLength(float u[3]);
 void vecNormalised(float u[3]);
 void matVecMult(float F[16], float u[3]);
 void matMult(float F[16], float G[16]);
@@ -476,11 +476,11 @@ void vecSub(float u[3], float v[3])
         ResultStore[i] = u[i] - v[i];
 }
 
-/* Get the length of a vector */
-float vecLength(float u[3])
-{
-    return fp_sqrt(u[0] * u[0] + u[1] * u[1] + u[2] * u[2]);
-}
+// /* Get the length of a vector */
+// float vecLength(float u[3])
+// {
+//     return fp_sqrt(u[0] * u[0] + u[1] * u[1] + u[2] * u[2]);
+// }
 
 /* Normalised vector */
 void vecNormalised(float u[3])
