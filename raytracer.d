@@ -246,43 +246,43 @@ float fp_log(float a)
         y -= 0x0b172;
     }
     t = x + (x >> 1);
-    if((t & 0x80000000) == 0) 
+    if(!(t & 0x80000000)) 
     {
         x = t;
         y -= 0x067cd;
     }
     t = x + (x >> 2);
-    if((t & 0x80000000) == 0)
+    if(!(t & 0x80000000))
     {
         x = t;
         y -= 0x03920;
     }
     t = x + (x >> 3);
-    if((t & 0x80000000) == 0)
+    if(!(t & 0x80000000))
     {
         x = t;
         y -= 0x01e27;
     }
     t = x + (x >> 4);
-    if((t & 0x80000000) == 0)
+    if(!(t & 0x80000000))
     {
         x = t;
         y -= 0x00f85;
     }
     t = x + (x >> 5); 
-    if((t & 0x80000000) == 0)
+    if(!(t & 0x80000000))
     {
         x = t;
         y -= 0x007e1;
     }
     t = x + (x >> 6); 
-    if((t & 0x80000000) == 0) 
+    if(!(t & 0x80000000)) 
     {
         x = t;
         y -= 0x003f8;
     }
     t = x + (x >> 7);
-    if((t & 0x80000000) == 0)
+    if(!(t & 0x80000000))
      {
          x = t;
          y -= 0x001fe;
@@ -716,14 +716,14 @@ void setTriangle(int objectIndex, int triangleIndex, float u[3], float v[3], flo
     vIdx = DomMod[domIdx + 2];
     
     // This should make calculations easier...
-    dk = (domIdx == 1) ? NormDom[1] : (( domIdx == 2) ? NormDom[2] : NormDom[0]);
-    du = (uIdx == 1) ? NormDom[1] : ((uIdx == 2) ? NormDom[2] : NormDom[0]);
-    dv = (vIdx == 1) ? NormDom[1] : ((vIdx == 2) ? NormDom[2] : NormDom[0]);
+    dk = (!domIdx) ? NormDom[0] : (( domIdx == 2) ? NormDom[2] : NormDom[1]);
+    du = (!uIdx) ? NormDom[0] : ((uIdx == 2) ? NormDom[2] : NormDom[1]);
+    dv = (!vIdx) ? NormDom[0] : ((vIdx == 2) ? NormDom[2] : NormDom[1]);
     
-    bu = (uIdx == 1) ? wmu[1] : ((uIdx == 2) ? wmu[2] : wmu[0]);
-    bv = (vIdx == 1) ? wmu[1] : ((vIdx == 2) ? wmu[2] : wmu[0]);
-    cu = (uIdx == 1) ? vmu[1] : ((uIdx == 2) ? vmu[2] : vmu[0]);
-    cv = (vIdx == 1) ? vmu[1] : ((vIdx == 2) ? vmu[2] : vmu[0]);
+    bu = (!uIdx) ? wmu[0] : ((uIdx == 2) ? wmu[2] : wmu[1]);
+    bv = (!vIdx) ? wmu[0] : ((vIdx == 2) ? wmu[2] : wmu[1]);
+    cu = (!uIdx) ? vmu[0] : ((uIdx == 2) ? vmu[2] : vmu[1]);
+    cv = (!vIdx) ? vmu[0] : ((vIdx == 2) ? vmu[2] : vmu[1]);
     
     /*
     if (dk == 0)
@@ -839,15 +839,15 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     kv = DomMod[dominantAxisIdx + 2];
     
     
-    // Now take the correct components for destination:
-    dk = (dominantAxisIdx == 0) ? ray[RayDirectionx] : ((dominantAxisIdx == 1) ? ray[RayDirectiony] : ray[RayDirectionz]);
-    du = (ku == 0) ? ray[RayDirectionx] : ((ku == 1) ? ray[RayDirectiony] : ray[RayDirectionz]);
-    dv = (kv == 0) ? ray[RayDirectionx] : ((kv == 1) ? ray[RayDirectiony] : ray[RayDirectionz]);
+    // Now take the correct components for destination (note, use of not are for == 0 cases as ! is faster):
+    dk = (!dominantAxisIdx) ? ray[RayDirectionx] : ((dominantAxisIdx == 1) ? ray[RayDirectiony] : ray[RayDirectionz]);
+    du = (!ku) ? ray[RayDirectionx] : ((ku == 1) ? ray[RayDirectiony] : ray[RayDirectionz]);
+    dv = (!kv) ? ray[RayDirectionx] : ((kv == 1) ? ray[RayDirectiony] : ray[RayDirectionz]);
     
     // Then do the same with the source:
-    ok = (dominantAxisIdx == 0) ? ray[RaySourcex] : ((dominantAxisIdx == 1) ? ray[RaySourcey] : ray[RaySourcez]);
-    ou = (ku == 0) ? ray[RaySourcex] : ((ku == 1) ? ray[RaySourcey] : ray[RaySourcez]);
-    ov = (kv == 0) ? ray[RaySourcex] : ((kv == 1) ? ray[RaySourcey] : ray[RaySourcez]);
+    ok = (!dominantAxisIdx) ? ray[RaySourcex] : ((dominantAxisIdx == 1) ? ray[RaySourcey] : ray[RaySourcez]);
+    ou = (!ku) ? ray[RaySourcex] : ((ku == 1) ? ray[RaySourcey] : ray[RaySourcez]);
+    ov = (!kv) ? ray[RaySourcex] : ((kv == 1) ? ray[RaySourcey] : ray[RaySourcez]);
     
     // Compute the denominator:
     denom = dk + (ObjectDB[objectIdx][triangleIdx][TriangleNUDom] * du) + (ObjectDB[objectIdx][triangleIdx][TriangleNVDom] * dv);
@@ -859,7 +859,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     
     numeri = (void) numer;
     
-    if (numeri == 0)
+    if (!numeri)
         return -1;
     
     // Do a sign check
@@ -951,8 +951,8 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     }
     
     // Extract points from primary vector:
-    au = (ku == 0) ? ObjectDB[objectIdx][triangleIdx][TriangleAx] : ((ku == 1) ? ObjectDB[objectIdx][triangleIdx][TriangleAy] : ObjectDB[objectIdx][triangleIdx][TriangleAz]);
-    av = (kv == 0) ? ObjectDB[objectIdx][triangleIdx][TriangleAx] : ((kv == 1) ? ObjectDB[objectIdx][triangleIdx][TriangleAy] : ObjectDB[objectIdx][triangleIdx][TriangleAz]);
+    au = (!ku) ? ObjectDB[objectIdx][triangleIdx][TriangleAx] : ((ku == 1) ? ObjectDB[objectIdx][triangleIdx][TriangleAy] : ObjectDB[objectIdx][triangleIdx][TriangleAz]);
+    av = (!kv) ? ObjectDB[objectIdx][triangleIdx][TriangleAx] : ((kv == 1) ? ObjectDB[objectIdx][triangleIdx][TriangleAy] : ObjectDB[objectIdx][triangleIdx][TriangleAz]);
     
     // Continue calculating intersections:
     if (biteval)
