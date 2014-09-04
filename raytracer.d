@@ -988,9 +988,8 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
 
 void objectIntersection(float ray[6], int objectIdx)
 {
-    float Mu, Mv, intersectionPoint, nearestIntersection = (void) FURTHEST_RAY; //, epseq = (void) EPS;
+    float Mu, Mv, intersectionPoint, nearestIntersection = (void) FURTHEST_RAY, dirVec[3], normVec[3], location[3];
     int n, i, nearestIdx, bitshift, nearestbitshift = 32;
-    float dirVec[3], normVec[3], location[3];
     
     HitData[HitDataDistance] = 0;
     
