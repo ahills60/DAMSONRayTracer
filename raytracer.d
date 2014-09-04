@@ -297,7 +297,7 @@ float fp_pow(float a, float b)
     if (a <= 0.0)
         return 0.0;
     
-    if ((void) b == (void) 0)
+    if (!((void) b))
         return 1.0;
     
     return fp_exp(fp_log(a) * b);
@@ -367,7 +367,7 @@ float fp_sqrt(float ina)
     if (im >= 0)
     {
         k = LOOKUP_SQRT[im] & 0xFFFF;
-        if ((p & 1) > 0)
+        if (p & 1)
         {
             k = k * 92682;
             k = (k < 0) ? (((k & 0x7FFFFFFF) >> 16) | 0x8000) : k >> 16;
@@ -424,9 +424,8 @@ float deg2rad(float deg)
     deg *= 4.468042886;
     
     // shift
-    deg = (void)((void) deg >> 8);
     // (deg * 256 * pi / 180) / 256
-    return deg; // * M_PI / 180.0;
+    return (void)((void) deg >> 8); // * M_PI / 180.0;
 }
 
 /* Vector multiply */
@@ -493,7 +492,7 @@ void vecSub(float u[3], float v[3])
 void vecNormalised(float u[3])
 {
     float tempVar = u[0] * u[0] + u[1] * u[1] + u[2] * u[2];
-    if ((void) tempVar == (void) 0)
+    if (!((void) tempVar))
     {
         ResultStore[0] = u[0];
         ResultStore[1] = u[1];
@@ -738,7 +737,7 @@ void setTriangle(int objectIndex, int triangleIndex, float u[3], float v[3], flo
     }
     */
     // Now precompute components for Barycentric intersection
-    if ((void) dk == (void) 0)
+    if (!((void) dk))
         dk = 1.0;
     ObjectDB[objectIndex][triangleIndex][TriangleNUDom] = du / dk;
     ObjectDB[objectIndex][triangleIndex][TriangleNVDom] = dv / dk;
@@ -746,7 +745,7 @@ void setTriangle(int objectIndex, int triangleIndex, float u[3], float v[3], flo
     
     // First line of the equation:
     coeff = (bu * cv) - (bv * cu);
-    if ((void) coeff == (void) 0)
+    if (!((void) coeff))
         coeff = 1.0;
     ObjectDB[objectIndex][triangleIndex][TriangleBUDom] = bu / coeff;
     ObjectDB[objectIndex][triangleIndex][TriangleBVDom] = -(bv / coeff);
@@ -778,8 +777,9 @@ void uvSub(float a[2], float b[2], MathStat *m)
 // Camera creation. Initialises the camera vector
 void setCamera(float location[3], float view[3], float fov, int width, int height)
 {
-    float vertical[3], horizontal[3], up[3] = {0, 1.0, 0}, ar, fovh, dfovardw, fovar, dfovdh;
+    float vertical[3], horizontal[3], up[3] = {0, 1.0, 0}, ar, fovh, dfovardw;
     int i;
+    
     cross(view, up);
     for (i = 0; i < 3; i += 1)
         horizontal[i] = ResultStore[i];
@@ -798,10 +798,6 @@ void setCamera(float location[3], float view[3], float fov, int width, int heigh
     dfovardw *= fovh;
     dfovardw /= (float) width;
     
-    fovar = fovh * ar;
-    
-    dfovdh = deg2rad(fov) / (float) height;
-    
     // Now populate the camera vector
     for (i = 0; i < 3; i += 1)
     {        
@@ -816,8 +812,8 @@ void setCamera(float location[3], float view[3], float fov, int width, int heigh
     Camera[CameraHeight] = (float) height;
     Camera[CameraWidth] = (float) width;
     Camera[CameraDFoVARDW] = dfovardw;
-    Camera[CameraFoVAR] = fovar;
-    Camera[CameraDFoVDH] = dfovdh;
+    Camera[CameraFoVAR] = fovh * ar;
+    Camera[CameraDFoVDH] = deg2rad(fov) / (float) height;
 }
 
 float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float currentDistance)
@@ -1058,7 +1054,7 @@ void sceneIntersection(float ray[6])
     }
     
     // Now check to see if there actually was a hit:
-    if (( nearestHit[HitDataDistance] <= 0) || ((void) nearestHit[HitDataDistance] >= (void) FURTHEST_RAY))
+    if ((nearestHit[HitDataDistance] <= 0) || ((void) nearestHit[HitDataDistance] >= (void) FURTHEST_RAY))
         nearestHit[HitDataObjectIndex] = -1;
     // Finally copy the contents of the nearest hit vector to the hit data vector.
     for (n = 0; n < 18; n += 1)
@@ -1214,7 +1210,7 @@ void diffusion(float localHitData[18], float lightDirection[3], float textureCol
     float vector[3], distance, dotProduct;
     int i, hitObjIdx = (void) localHitData[HitDataObjectIndex];
     
-    if (MaterialDB[hitObjIdx][MaterialDiffusive] > 0)
+    if ((void)MaterialDB[hitObjIdx][MaterialDiffusive])
     {
         for (i = 0; i < 3; i += 1)
             vector[i] = localHitData[HitDataHitNormal + i];
@@ -1252,7 +1248,7 @@ void specular(float localHitData[18], float lightDirection[3], float textureColo
     int i, hitObjIdx = (void) localHitData[HitDataObjectIndex];
     float vector[3], dotProduct, distance;
     
-    if (MaterialDB[hitObjIdx][MaterialSpecular] > 0)
+    if ((void) MaterialDB[hitObjIdx][MaterialSpecular])
     {
         // Reflective ray:
         reflectRay(localHitData);
@@ -1297,7 +1293,7 @@ void setMaterial(int materialIdx, float colour[3], float ambiance, float diffusi
     MaterialDB[materialIdx][MaterialReflectivity] = reflectivity;
     MaterialDB[materialIdx][MaterialOpacity] = opacity;
     MaterialDB[materialIdx][MaterialRefractivity] = refractivity;
-    if ((void) refractivity == (void) 0)
+    if (!((void) refractivity))
     {
         MaterialDB[materialIdx][MaterialInverseRefractivity] = 1.0;
         MaterialDB[materialIdx][MaterialSquareInverseRefractivity] = 1.0;
@@ -1685,17 +1681,11 @@ void populateScene()
 /* And then the standard draw function that's been previously constructed */
 void draw(float ray[6], int recursion)
 {
-    float outputColour[3], textureColour[3] = {-1.0, -1.0, -1.0};
-    float vector[3], hitLocation[3], localHitData[18], lightDirection[3];
-    float colour[3], alpha;
-    float reflection, refraction;
-    float newRay[6], source[3];
+    float outputColour[3] = {0, 0, 0}, textureColour[3] = {-1.0, -1.0, -1.0};
+    float vector[3], localHitData[18], lightDirection[3];
+    float alpha, reflection, refraction;
+    float newRay[6];
     int i, hitObjIdx;
-    
-    // Default is black. We can add to this (if there's a hit) 
-    // or just return it (if there's no object)
-    for (i = 0; i < 3; i += 1)
-        outputColour[i] = 0;
     
     // Check for an intersection. Results are stored in the hit data array
     sceneIntersection(ray);
@@ -1713,7 +1703,7 @@ void draw(float ray[6], int recursion)
             localHitData[i] = HitData[i];
         
         // Determine whether the light vector describes the direction or the position:
-        if ((void) Light[LightGlobalFlag] != (void) 0)
+        if ((void) Light[LightGlobalFlag])
             for (i = 0; i < 3; i +=1)
                 lightDirection[i] = Light[LightVector + i];
         else
@@ -1742,7 +1732,7 @@ void draw(float ray[6], int recursion)
             getColour(localHitData);
             // This function returns the RGBA value. This is held in the result store:
             for (i = 0; i < 3; i += 1)
-                colour[i] = ResultStore[i];
+                textureColour[i] = ResultStore[i];
             alpha = ResultStore[3];
             
             // Check to see if we need to create a new ray from this point:
@@ -1766,11 +1756,8 @@ void draw(float ray[6], int recursion)
                 // Next, take the colour and previous alpha value and compute the product,
                 // Then add the two components together and the result is the texture colour:
                 for (i = 0; i < 3; i += 1)
-                    textureColour[i] = ((1 - alpha) * ResultStore[i]) + (alpha * colour[i]);
+                    textureColour[i] = ((1 - alpha) * ResultStore[i]) + (alpha * textureColour[i]);
             }
-            else
-                for (i = 0; i < 3; i += 1)
-                    textureColour[i] = colour[i];
         }
         // Now compute the individual lighting effects and add the components together.
         // These are stored in the RGB components vector
@@ -1788,7 +1775,7 @@ void draw(float ray[6], int recursion)
             // Yes, we should
             // Get the reflection
             reflection = MaterialDB[localHitData[HitDataObjectIndex]][MaterialReflectivity];
-            if (reflection > 0.0)
+            if ((void) reflection)
             {
                 // Create the new reflected ray:
                 reflectRay(localHitData);
@@ -1799,11 +1786,11 @@ void draw(float ray[6], int recursion)
                 draw(newRay, recursion - 1);
                 // And extract the result from result store:
                 for (i = 0; i < 3; i += 1)
-                    outputColour[i] = outputColour[i] + (reflection * ResultStore[i]);
+                    outputColour[i] += (reflection * ResultStore[i]);
             }
             // Extract the material's opacity:
             refraction = MaterialDB[localHitData[HitDataObjectIndex]][MaterialOpacity];
-            if (refraction > 0.0)
+            if ((void) refraction)
             {
                 // Get the refraction in a similar way:
                 refractRay(localHitData, MaterialDB[localHitData[HitDataObjectIndex]][MaterialInverseRefractivity], MaterialDB[localHitData[HitDataObjectIndex]][MaterialSquareInverseRefractivity]);
@@ -1814,7 +1801,7 @@ void draw(float ray[6], int recursion)
                 draw(newRay, recursion - 1);
                 // Populate the refractiveColour vector:
                 for (i = 0; i < 3; i += 1)
-                    outputColour[i] = outputColour[i] + (refraction * ResultStore[i]);
+                    outputColour[i] += (refraction * ResultStore[i]);
             }
         }
         // printf("Hit at: %f, %f, %f\nRay Direction: %f, %f, %f\nLight direction: %f, %f, %f\n", fp_FP2Flt(hit.location.x), fp_FP2Flt(hit.location.y), fp_FP2Flt(hit.location.z), fp_FP2Flt(ray.direction.x), fp_FP2Flt(ray.direction.y), fp_FP2Flt(ray.direction.z), fp_FP2Flt(lightDirection.x), fp_FP2Flt(lightDirection.y), fp_FP2Flt(lightDirection.z));
@@ -1850,7 +1837,7 @@ int main(void)
     // Global Lighting flag:
     Light[LightGlobalFlag] = 0;
     
-    if ((void) Light[LightGlobalFlag] == (void) 0)
+    if (!((void) Light[LightGlobalFlag]))
     {
         // Set the light source coordinates:
         Light[LightVector + 0] = -1.0;
