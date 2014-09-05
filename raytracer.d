@@ -398,8 +398,79 @@ float fp_sqrt(float ina)
 
 float fp_rsqrt(float a)
 {
-    float lna = -fp_log(a);
-    return fp_exp((void) ((void) lna >> 1));
+    float output, flta;
+    int inta = (void) a, msb = 0, shifted;
+    
+    if (a <= 0)
+        return 0;
+    
+    // Locate MSB
+    if (inta & 0xFFFF0000)
+    {
+        inta >>= 16;
+        msb += 16;
+    }
+    if (inta & 0x0000FF00)
+    {
+        inta >>= 8;
+        msb += 8;
+    }
+    if (inta & 0x000000F0)
+    {
+        inta >>= 4;
+        msb += 4;
+    }
+    if (inta & 0x0000000C)
+    {
+        inta >>= 2;
+        msb += 2;
+    }
+    if (inta & 0x00000002)
+    {
+        inta >>= 1;
+        msb += 1;
+    }
+    // Plus any remainder.
+    msb += inta;
+    
+    // Get the number back again
+    inta = (void) a;
+    // Then start normalisation procedure
+    if (msb > 15)
+    {
+        // Integer component. Need to shift right
+        shifted = msb - 16;
+        inta >>= shifted;
+    }
+    else if (msb < 16)
+    {
+        // Decimal only. Need to shift right
+        shifted = 16 - msb;
+        inta <<= shifted;
+    }
+    // Convert the integer to float
+    flta = (void) inta;
+    
+    output = 1.78773 - 0.80999 * flta;
+    // x_{n + 1} = x_n / 2 (3 - a x^2_n) 
+    output = (void)((void)(output * (3.0 - flta * output * output)) >> 1);
+    output = (void)((void)(output * (3.0 - flta * output * output)) >> 1);
+    output = (void)((void)(output * (3.0 - flta * output * output)) >> 1);
+    
+    // // Was there an odd number of shifts?
+    if (shifted & 1)
+        // Yes, factor in 1/sqrt(2) by multiplying by sqrt(2)
+        output *= SQRT2;
+    
+    inta = (void) output;
+    
+    if (msb > 15)
+        inta >>= (shifted + 1 >> 1);
+    else if (msb < 16)
+        inta <<= (shifted >> 1);
+
+    // bring the output back to float form
+    return (void) inta;
 }
 
 /* Set the UV coordinates */

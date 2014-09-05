@@ -113,3 +113,6 @@
 #define EPS                                     0x6
 
 #define FURTHEST_RAY                            1 << 30
+
+// Square root 2 definition:
+#define SQRT2                                   1.414213562
