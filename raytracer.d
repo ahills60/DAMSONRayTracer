@@ -433,24 +433,21 @@ float fp_rsqrt(float a)
     // Plus any remainder.
     msb += inta;
     
-    // Get the number back again
-    inta = (void) a;
     // Then start normalisation procedure
     if (msb > 15)
     {
         // Integer component. Need to shift right
         shifted = msb - 16;
-        inta >>= shifted;
+        flta = (void)((void) a >> shifted);
     }
-    else if (msb < 16)
+    else
     {
-        // Decimal only. Need to shift right
+        // Decimal only. Need to shift left
         shifted = 16 - msb;
-        inta <<= shifted;
+        flta = (void)((void) a << shifted);
     }
-    // Convert the integer to float
-    flta = (void) inta;
     
+    // Initial guess then Newton iterations
     output = 1.78773 - 0.80999 * flta;
     // x_{n + 1} = x_n / 2 (3 - a x^2_n) 
     output = (void)((void)(output * (3.0 - flta * output * output)) >> 1);
@@ -462,15 +459,11 @@ float fp_rsqrt(float a)
         // Yes, factor in 1/sqrt(2) by multiplying by sqrt(2)
         output *= SQRT2;
     
-    inta = (void) output;
-    
+    // Undo the normalisation process and return the result
     if (msb > 15)
-        inta >>= (shifted + 1 >> 1);
+        return (void) (((void) output) >> ((shifted + 1) >> 1));
     else if (msb < 16)
-        inta <<= (shifted >> 1);
-
-    // bring the output back to float form
-    return (void) inta;
+        return (void) (((void) output) << (shifted >> 1));
 }
 
 /* Set the UV coordinates */
