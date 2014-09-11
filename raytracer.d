@@ -117,7 +117,7 @@ void draw(float ray[6], int recursion);
 /* Start functions */
 float fp_sin(float a)
 {
-    float c, absc, absa;
+    float c;
     
     // Ensure input within the range of -pi to pi
     if (a > FP_PI)
@@ -125,15 +125,11 @@ float fp_sin(float a)
     if (a < -FP_PI)
         a += FP_2PI;
     
-    absa = fabs(a);
-    
     // Use fast sine parabola approximation
-    c = (FP_CONST_B * a) + (FP_CONST_C * a * absa);
-    
-    absc = fabs(c);
+    c = (FP_CONST_B * a) + (FP_CONST_C * a * fabs(a));
     
     // Get extra precision weighting the parabola:
-    c += (FP_CONST_Q * ((c * absc) - c)); // Q * output + P * output * abs(output)
+    c += (FP_CONST_Q * ((c * fabs(c)) - c)); // Q * output + P * output * abs(output)
     
     // Finally, convert the integer back to a float.
     return c;
@@ -922,7 +918,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
         return -1;
     
     // Locate the MSB of the numerator:
-    tempVar1 = (void) fabs(numer);
+    tempVar1 = abs(numeri);
     msb1 = 0;
     if (tempVar1 & 0xFFFF0000)
     {
@@ -953,7 +949,7 @@ float triangleIntersection(float ray[6], int objectIdx, int triangleIdx, float c
     msb1 += tempVar1;
     
     // Then do the same for the denominator:
-    tempVar1 = (void) fabs(denom);
+    tempVar1 = abs(denomi);
     msb2 = 0;
     if (tempVar1 & 0xFFFF0000)
     {
