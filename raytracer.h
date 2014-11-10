@@ -116,3 +116,6 @@
 
 // Square root 2 definition:
 #define SQRT2                                   1.414213562
+
+// Inverse ln 2
+#define RECIP_LN2                               1.4426950408    // 0x00017154
